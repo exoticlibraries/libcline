@@ -3,13 +3,13 @@
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
     \author Adewale Azeez <azeezadewale98@gmail.com>
     \date 11 April 2021
-    \file clinearg.h
+    \file cliarg.h
 
-    clinearg.h is ...
+    cliarg.h is ...
 */
 
-#ifndef EXOTIC_CLINE_CLINE_ARG_H
-#define EXOTIC_CLINE_CLINE_ARG_H
+#ifndef EXOTIC_CLINE_CLI_ARG_H
+#define EXOTIC_CLINE_CLI_ARG_H
 
 #ifdef __cplusplus
 extern "C" {

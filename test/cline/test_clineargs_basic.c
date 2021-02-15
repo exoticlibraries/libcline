@@ -1,7 +1,7 @@
 /*!gcc -ansi -pedantic-errors {0} -I. -I../../include/ -o out; ./out */
 
 #include <exotic/cester.h>
-#include <exotic/cli/clinearg.h>
+#include <exotic/cline/cliarg.h>
 
 CESTER_TEST(cline_arg_name, inst, {
     ClineArgs *cline_arg;
