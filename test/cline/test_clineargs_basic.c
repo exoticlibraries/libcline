@@ -3,7 +3,7 @@
 #include <exotic/cester.h>
 #include <exotic/cline/cliarg.h>
 
-CESTER_TEST(cline_arg_name, inst, {
+/*CESTER_TEST(cline_arg_name, inst, {
     ClineArgs *cline_arg;
 
     cester_assert_int_eq(init_cline_arg(&cline_arg, "CliCalc"), XTD_OK);
@@ -20,7 +20,7 @@ CESTER_TEST(cline_arg_description, inst, {
     cester_assert_str_equal(cline_arg_description(cline_arg), "A simple command line calculator");
     
     destroy_cline_arg(cline_arg);
-})
+})*/
 
 CESTER_OPTIONS(
     CESTER_VERBOSE_LEVEL(3);

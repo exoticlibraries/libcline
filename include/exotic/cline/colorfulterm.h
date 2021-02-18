@@ -22,67 +22,136 @@ extern "C" {
 #include <stdarg.h>
 #endif
 
+/** 
+    parameter padding for variadic.
+    this should be temporal
+*/
+#define CLINE_FE_PADDING_INTERNAL            -2
+
 /**
     The font effect macros used by cline.
     The values are appened to '\x1B[' and prepended with 'm' 
     for the combination of multiple effects they are seperated 
     by ';' 
 
-    \see https://stackoverflow.com/a/33206814
+    \see https://en.wikipedia.org/wiki/ANSI_escape_code
     \see http://www.ecma-international.org/publications/standards/Ecma-048.htm
 */
-#define CLINE_FE_RESET                 0
-#define CLINE_FE_BOLD                  1
-#define CLINE_FE_FAINT                 2
-#define CLINE_FE_ITALIC                3
-#define CLINE_FE_UNDERLINE             4
+#define CLINE_FE_NONE                        -1     /**< no font effect.   */
+#define CLINE_FE_RESET                        0     /**< reset the terminal color   */
+#define CLINE_FE_BOLD                         1
+#define CLINE_FE_FAINT                        2
+#define CLINE_FE_ITALIC                       3
+#define CLINE_FE_UNDERLINE                    4
+#define CLINE_FE_SLOW_BLINK                   5
+#define CLINE_FE_RAPID_BLINK                  6
+#define CLINE_FE_REVERSE_VIDEO                7
+#define CLINE_FE_CONCEAL                      8
+#define CLINE_FE_CROSSED_OUT                  9
+#define CLINE_FE_DEFAULT_FONT                 10
+#define CLINE_FE_ALTERNATE_FONT_1             11
+#define CLINE_FE_ALTERNATE_FONT_2             12
+#define CLINE_FE_ALTERNATE_FONT_3             13
+#define CLINE_FE_ALTERNATE_FONT_4             14
+#define CLINE_FE_ALTERNATE_FONT_5             15
+#define CLINE_FE_ALTERNATE_FONT_6             16
+#define CLINE_FE_ALTERNATE_FONT_7             17
+#define CLINE_FE_ALTERNATE_FONT_8             18
+#define CLINE_FE_ALTERNATE_FONT_9             19
+#define CLINE_FE_BLACKLETTER                  20
+#define CLINE_FE_BOLD_OFF                     21
+#define CLINE_FE_DOUBLE_UNDELINE              21
+#define CLINE_FE_NORMAL_COLOR                 22
+#define CLINE_FE_NOT_ITALIC                   23
+#define CLINE_FE_NOT_BLACKLETTER              23
+#define CLINE_FE_UNDERLINE_OFF                24
+#define CLINE_FE_BLINK_OFF                    25
+#define CLINE_FE_PROPORTIONAL_SPACING         26
+#define CLINE_FE_INVERSE_OFF                  27
+#define CLINE_FE_REVEAL                       28
+#define CLINE_FE_NOT_CROSSED_OUT              29
+#define CLINE_FE_FOREGROUND_BLACK             30
+#define CLINE_FE_FOREGROUND_RED               31
+#define CLINE_FE_FOREGROUND_GREEN             32
+#define CLINE_FE_FOREGROUND_YELLOW            33
+#define CLINE_FE_FOREGROUND_BLUE              34
+#define CLINE_FE_FOREGROUND_MAGENTA           35
+#define CLINE_FE_FOREGROUND_CYAN              36
+#define CLINE_FE_FOREGROUND_WHITE             37
+#define CLINE_FE_SET_FOREGROUND               38
+#define CLINE_FE_DEFAULT_FOREGROUND_COLOR     39
+#define CLINE_FE_BACKGROUND_BLACK             40
+#define CLINE_FE_BACKGROUND_RED               41
+#define CLINE_FE_BACKGROUND_GREEN             42
+#define CLINE_FE_BACKGROUND_YELLOW            43
+#define CLINE_FE_BACKGROUND_BLUE              44
+#define CLINE_FE_BACKGROUND_MAGENTA           45
+#define CLINE_FE_BACKGROUND_CYAN              46
+#define CLINE_FE_BACKGROUND_WHITE             47
+#define CLINE_FE_SET_BACKGROUND               48
+#define CLINE_FE_DEFAULT_BACKGROUND_COLOR     49
+#define CLINE_FE_DISABLE_PROPORTIONAL_SPACING 50
+#define CLINE_FE_FRAMED                       51
+#define CLINE_FE_ENCIRCLED                    52
+#define CLINE_FE_OVERLINED                    53
+#define CLINE_FE_NEITHER_FRAMED_NOR_ENCIRCLED 54
+#define CLINE_FE_NOT_OVERLINED                55
+#define CLINE_FE_SET_UNDERLINE_COLOR          58
+#define CLINE_FE_DEFAULT_UNDERLINE_COLOR      59
+#define CLINE_FE_IDEOGRAM_UNDERLINE_OR_RIGHT_SIDE_LINE                 60
+#define CLINE_FE_IDEOGRAM_DOUBLE_UNDERLINE_OR_DOUBLE_RIGHT_SIDE_LINE   61
+#define CLINE_FE_IDEOGRAM_OVERLINE_OR_LEFT_SIDE_LINE                   62
+#define CLINE_FE_IDEOGRAM_DOUBLE_OVERLINE_OR_DOUBLE_LEFT_SIDE_LINE     63
+#define CLINE_FE_IDEOGRAM_STRESS_MARKING                               64
+#define CLINE_FE_NO_IDEOGRAM_ATTR             65
+#define CLINE_FE_SUPERSCRIPT                  73
+#define CLINE_FE_SUBSCRIPT                    74
+#define CLINE_FE_FOREGROUND_BRIGHT_BLACK      90
+#define CLINE_FE_FOREGROUND_BRIGHT_RED        91
+#define CLINE_FE_FOREGROUND_BRIGHT_GREEN      92
+#define CLINE_FE_FOREGROUND_BRIGHT_YELLOW     93
+#define CLINE_FE_FOREGROUND_BRIGHT_BLUE       94
+#define CLINE_FE_FOREGROUND_BRIGHT_MAGENTA    95
+#define CLINE_FE_FOREGROUND_BRIGHT_CYAN       96
+#define CLINE_FE_FOREGROUND_BRIGHT_WHITE      97
+#define CLINE_FE_BACKGROUND_BRIGHT_BLACK      100
+#define CLINE_FE_BACKGROUND_BRIGHT_RED        101
+#define CLINE_FE_BACKGROUND_BRIGHT_GREEN      102
+#define CLINE_FE_BACKGROUND_BRIGHT_YELLOW     103
+#define CLINE_FE_BACKGROUND_BRIGHT_BLUE       104
+#define CLINE_FE_BACKGROUND_BRIGHT_MAGENTA    105
+#define CLINE_FE_BACKGROUND_BRIGHT_CYAN       106
+#define CLINE_FE_BACKGROUND_BRIGHT_WHITE      107
 
-#define CLINE_RESET_TERMINAL   "\x1B[0m"     /**< reset the terminal color   */
-#define CLINE_BOLD             "\x1B[1m"     /**< bold text                  */
-#define CLINE_FG_BLACK         "\x1B[30m"    /**< gray terminal FG color     */
-#define CLINE_FG_RED           "\x1B[31m"    /**< red terminal FG color      */
-#define CLINE_FG_GREEN         "\x1B[32m"    /**< green FG color             */
-#define CLINE_FG_YELLOW        "\x1B[33m"    /**< yellow terminal FG color   */
-#define CLINE_FG_BLUE          "\x1B[34m"    /**< blue terminal FG color     */
-#define CLINE_FG_MAGENTA       "\x1B[35m"    /**< magenta terminal FG color  */
-#define CLINE_FG_CYAN          "\x1B[36m"    /**< cyan terminal FG color     */
-#define CLINE_FG_WHITE         "\x1B[37m"    /**< white terminal FG color    */
-#define CLINE_FG_GRAY          "\x1B[90m"    /**< gray terminal FG color     */
-#define CLINE_BG_BLACK         "\x1B[40m"    /**< black terminal BG color    */
-#define CLINE_BG_RED           "\x1B[41m"    /**< red terminal BG color      */
-#define CLINE_BG_GREEN         "\x1B[42m"    /**< green terminal BG color    */
-#define CLINE_BG_YELLOW        "\x1B[43m"    /**< yellow terminal BG color   */
-#define CLINE_BG_BLUE          "\x1B[44m"    /**< blue terminal BG color     */
-#define CLINE_BG_MAGENTA       "\x1B[45m"    /**< magenta terminal BG color  */
-#define CLINE_BG_CYAN          "\x1B[46m"    /**< cyan terminal BG color     */
-#define CLINE_BG_GRAY          "\x1B[100m"   /**< gray terminal BG color     */
-#define CLINE_BG_WHITE         "\x1B[47m"    /**< gray terminal BG color     */
+/**
+
+*/
+#define CLINE_FE_FOREGROUND_RGB(r, g, b) CLINE_FE_SET_FOREGROUND, 2, r, g, b
+
+/**
+
+*/
+#define CLINE_FE_BACKGROUND_RGB(r, g, b) CLINE_FE_SET_BACKGROUND, 2, r, g, b
+
+/**
+
+*/
+#define CLINE_FE_FOREGROUND_MODE(mode) CLINE_FE_SET_FOREGROUND, 5, mode
+
+/**
+
+*/
+#define CLINE_FE_BACKGROUND_MODE(mode) CLINE_FE_SET_BACKGROUND, 5, mode
 
 #ifdef _WIN32
 /**
 
 */
-#define CLINE_WIN32_RESET_TERMINAL   15                                                        /**< reset the terminal color //Nothing */
-#define CLINE_WIN32_BOLD             15                                                        /**< bold text                //Nothing */
-#define CLINE_WIN32_FG_BLACK         8                                                         /**< gray terminal FG color             */
-#define CLINE_WIN32_FG_RED           4                                                         /**< red terminal FG color              */
-#define CLINE_WIN32_FG_GREEN         2                                                         /**< green FG color                     */
-#define CLINE_WIN32_FG_YELLOW        6                                                         /**< yellow terminal FG color           */
-#define CLINE_WIN32_FG_BLUE          3                                                         /**< blue terminal FG color             */
-#define CLINE_WIN32_FG_MAGENTA       5                                                         /**< magenta terminal FG color          */
-#define CLINE_WIN32_FG_CYAN          11                                                        /**< cyan terminal FG color             */
-#define CLINE_WIN32_FG_WHITE         15                                                        /**< white terminal FG color            */
-#define CLINE_WIN32_FG_GRAY          8                                                         /**< gray terminal FG color             */
-#define CLINE_WIN32_BG_BLACK         0                                                         /**< black terminal BG color            */
-#define CLINE_WIN32_BG_RED           64                                                        /**< red terminal BG color              */
-#define CLINE_WIN32_BG_GREEN         39                                                        /**< green terminal BG color            */
-#define CLINE_WIN32_BG_YELLOW        96                                                        /**< yellow terminal BG color           */
-#define CLINE_WIN32_BG_BLUE          48                                                        /**< blue terminal BG color             */
-#define CLINE_WIN32_BG_MAGENTA       87                                                        /**< magenta terminal BG color          */
-#define CLINE_WIN32_BG_CYAN          176                                                       /**< cyan terminal BG color             */
-#define CLINE_WIN32_BG_GRAY          0                                                         /**< gray terminal BG color             */
-#define CLINE_WIN32_BG_WHITE         10                                                        /**< gray terminal BG color             */
+static bool already_change_mode = FALSE;
 
+/**
+
+*/
 #ifndef CLINE_WIN32_STD_STREAM_HANDLE
 /**
 
@@ -91,8 +160,26 @@ extern "C" {
 #endif
 #endif
 
-/* TODO */
-/*#define CLINE_DONT_RESET_TERMINAL_INDIVIDUALLY*/
+/**
+
+*/
+#define NARGS_SEQ(_1,_2,_3,_4,_5,_6,_7,_8,_9,N,...) N
+
+/**
+
+*/
+#define NARGS(...) NARGS_SEQ(__VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1)
+
+/**
+   The max number of font effect options the \ref cline_fe_str accepts 
+*/
+#define CLINE_MAX_FE_OPTIONS_COUNT 20
+
+/**
+   30 should be big enough memory size to add to the text for the 
+   font effects options.
+*/
+#define CLINE_MAX_FE_OPTIONS_MEM_LENGTH 30
 
 void cline_platform_printnl_if()
 {
@@ -101,210 +188,122 @@ void cline_platform_printnl_if()
     #endif
 }
 
-void cline_die(const char *message)
-{
-    printf(message);
-    cline_platform_printnl_if();
-    exit(EXIT_FAILURE);
+#define CLINE_DIE(file_name, line_number, ...) {\
+    printf("libcline FATAL_ERROR -> %s:%d ", file_name, line_number);\
+    printf(__VA_ARGS__); \
+    cline_platform_printnl_if(); \
+    exit(EXIT_FAILURE);\
 }
+
+const char *cline_fe(const char *file_name, const int line_number, const int argscount, ...)
+{
+    va_list ap;
+    const char *p;
+    int argsindex = 0;
+    if (argscount <= 0) {
+        return "";
+    }
+    if (argscount > CLINE_MAX_FE_OPTIONS_COUNT) {
+        CLINE_DIE(file_name, line_number, "the font effect options cannot be more than %d", CLINE_MAX_FE_OPTIONS_COUNT);
+    }
+    size_t index = 0;
+    int concatenated_length = CLINE_MAX_FE_OPTIONS_MEM_LENGTH;
+    char *concatenated = (char *) malloc(concatenated_length+1);
 
 #ifdef _WIN32
-/* use equal function from xtd */
-static bool cline_string_equals(char* arg, char* arg1) {
-    unsigned i = 0;
-    if (arg == NULL || arg1 == NULL) {
-        return FALSE;
+    if (!already_change_mode) {
+        /*DWORD dw_mode = 0;
+        HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
+        if (GetConsoleMode(handle, &dw_mode)) {
+            dw_mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
+            if (!SetConsoleMode(handle, dw_mode));
+        }*/
+        already_change_mode = TRUE;
     }
-    while (1) {
-        if (arg[i] == '\0' && arg1[i] == '\0') {
-            break;
+#endif
+    concatenated[index++] = '\x1B';
+    concatenated[index++] = '[';
+    va_start(ap, argscount);
+    while (argsindex < argscount) {
+        unsigned int font_effect = va_arg(ap, unsigned int);
+        if (argsindex == 1 && font_effect == CLINE_FE_NONE) {
+            free(concatenated);
+            return "";
         }
-        if (arg[i] != arg1[i]) {
-            return FALSE;
-        }
-        ++i;
-    }
-    return TRUE;
-}
-
-void cline_win32_print_colored_str_se(HANDLE console, FILE *stream, unsigned int start_color, unsigned int end_color, const char *text)
-{
-    CONSOLE_SCREEN_BUFFER_INFO info;
-    if (GetConsoleScreenBufferInfo(console, &info)) {
-        if (start_color == CLINE_WIN32_RESET_TERMINAL) {
-            start_color = info.wAttributes;
-        } else if (end_color == CLINE_WIN32_RESET_TERMINAL) {
-            end_color = info.wAttributes;
-        }
-    }
-    SetConsoleTextAttribute(console, start_color);
-    fprintf(stream, "%s", text);
-    SetConsoleTextAttribute(console, end_color);
-}
-
-void cline_win32_print_colored_str(HANDLE console, FILE *stream, unsigned int color, const char *text)
-{
-    unsigned int default_text_attr;
-    CONSOLE_SCREEN_BUFFER_INFO info;
-    if (GetConsoleScreenBufferInfo(console, &info)) {
-        default_text_attr = info.wAttributes;
-    }
-    cline_win32_print_colored_str_se(console, stream, color, default_text_attr, text);
-}
-
-/* test edge case */
-void cline_fprintf_win32_print_colored_str(HANDLE console, FILE *stream, const char *text)
-{
-    unsigned int start_color = CLINE_WIN32_RESET_TERMINAL, index = 0, color_byte_index = 0, color_byte_size = 0;
-    unsigned int end_color = CLINE_WIN32_RESET_TERMINAL;
-    char *color_bytes;
-    char *actual_text = (char *) malloc(strlen(text));
-    if (!actual_text) {
-        cline_die("Unable to allocate memory in cline_fprintf_win32_print_colored_str, use fprintf instead");
-    }
-    cline_fprintf_win32_parse_color_bytes:
-        color_byte_index = 0;
-        color_bytes = (char *) malloc(sizeof(char) * 8);
-        if (!color_bytes) {
-            cline_die("Unable to allocate memory in cline_fprintf_win32_print_colored_str, use fprintf instead");
-        }
-        while (text[index] != '\0' && text[index] != 'm') {
-            color_bytes[color_byte_index++] = text[index];
-            index++;
-        }
-    if (start_color == CLINE_WIN32_RESET_TERMINAL && (color_bytes[0] != '\x1B' || color_bytes[1] != '[' || text[index] != 'm')) {
-        cline_win32_print_colored_str(console, stream, start_color, text);
-        goto cline_fprintf_win32_cleanup;
-    }
-    color_bytes[color_byte_index] = 'm';
-    color_bytes[color_byte_index+1] = '\0';
-    if (cline_string_equals(color_bytes, CLINE_FG_RED) == TRUE) {
-        if (index <= color_byte_index) {
-            start_color = CLINE_WIN32_FG_RED;
-        } else {
-            end_color = CLINE_WIN32_FG_RED;
-        }
-    } else if (cline_string_equals(color_bytes, CLINE_FG_GREEN) == TRUE) {
-        if (index <= color_byte_index) {
-            start_color = CLINE_WIN32_FG_GREEN;
-        } else {
-            end_color = CLINE_WIN32_FG_GREEN;
-        }
-    } else if (cline_string_equals(color_bytes, CLINE_FG_BLUE) == TRUE) {
-        if (index <= color_byte_index) {
-            start_color = CLINE_WIN32_FG_BLUE;
-        } else {
-            end_color = CLINE_WIN32_FG_BLUE;
-        }
-    } else if (cline_string_equals(color_bytes, CLINE_FG_YELLOW) == TRUE) {
-        if (index <= color_byte_index) {
-            start_color = CLINE_WIN32_FG_YELLOW;
-        } else {
-            end_color = CLINE_WIN32_FG_YELLOW;
-        }
-    } else if (cline_string_equals(color_bytes, CLINE_RESET_TERMINAL) == TRUE) {
-        if (index <= color_byte_size) {
-            start_color = CLINE_WIN32_RESET_TERMINAL;
-        } else {
-            end_color = CLINE_WIN32_RESET_TERMINAL;
-        }
-    }
-    /* if support variadic do SetConsoleTextAttribute here */
-    index++;
-    color_byte_size = index;
-    while (text[index] != '\0') {
-        if (text[index] == '\x1B') {
-            actual_text[index-color_byte_size] = '\0';
-            free(color_bytes);
-            goto cline_fprintf_win32_parse_color_bytes;
-        }
-        actual_text[index-color_byte_size] = text[index];
-        index++;
-    }
-    cline_win32_print_colored_str_se(console, stream, start_color, end_color, actual_text);
-
-    cline_fprintf_win32_cleanup:
-        free(color_bytes);
-        free(actual_text);
-        return;
-
-    cline_fprintf_win32_join_color_bytes:
-        printf("To Join\n");
-}
-
-void cline_fprintf_win32(HANDLE console, FILE *stream, const char *format, va_list ap)
-{
-    const char *p;
-    while (*format != '\0') {
-        if(*format != '%') {
-            fprintf(stream, "%c", *format);
-            format++;
+        if (font_effect == CLINE_FE_PADDING_INTERNAL) {
+            argsindex++;
             continue;
         }
-        format++;
-        if(*format == '\0') {
-            break;
+        concatenated[index] = '\0';
+        if (argsindex > 1) {
+            snprintf(concatenated, concatenated_length+1, "%s;%d", concatenated, font_effect);
+            index++;
+        } else {
+            snprintf(concatenated, concatenated_length+1, "%s%d", concatenated, font_effect);
         }
-        switch (*format) {
-            case 's':
-                cline_fprintf_win32_print_colored_str(console, stream, va_arg(ap, const char *));
-                break;
+        if (font_effect < 10) {
+            index += 1;
+        } else if (font_effect < 100) {
+            index += 2;
+        } else {
+            index += 3;
         }
-        format++;
+        argsindex++;
     }
-}
-
-void cline_fprintf(FILE *stream, const char *format, ...)
-{
-    va_list ap;
-    va_start(ap, format);
-    cline_fprintf_win32(GetStdHandle(CLINE_WIN32_STD_STREAM_HANDLE), stream, format, ap);
     va_end(ap);
+    concatenated[index++] = 'm';
+    concatenated[index] = '\0';
+    return concatenated;
 }
-#else
-#define cline_fprintf fprintf
-#endif
 
 /**
+    The font effect macros used by cline.
+    The values are appened to '\x1B[' and prepended with 'm' 
+    for the combination of multiple effects they are seperated 
+    by ';' 
+
+    if the first font effect option is CLINE_FE_NONE all the font 
+    effect option following it will be ignored and the text only will 
+    be returned which is euivalent to just specifying the text directly, 
+    this can be used to quick disable the effects without having to 
+    delete the other font effect options.
+
  TODO use reference counting to free mallocated str at end of program on call cline_terminal_cleanup
+ use vector to collect them and free 
 */
-const char *cline_color_str(const char *text, ...)
+const char *cline_fe_str_with_end_fe(const char *file_name, const int line_number, const char *text, const char *fe, const char *end_fe)
 {
-    va_list ap;
-    va_start(ap, text);
-
-    va_end(ap);
-    /*size_t color_length = strlen(color), text_length = strlen(text), reset_length = strlen(CLINE_RESET_TERMINAL);
-    size_t index, concatenated_length = (color_length + text_length + reset_length);
-    char *concatenated = (char *) malloc(concatenated_length);
-
-    /*index = color_length;
-    while (index > 0) {
-        concatenated[index-1] = color[index-1];
-        index--;
-    }
-    index = 0;
-    while (index < text_length) {
-        concatenated[color_length+index] = text[index];
-        index++;
-    }
-    index = 0;
-    while (index < reset_length) {
-        concatenated[color_length+text_length+index] = CLINE_RESET_TERMINAL[index];
-        index++;
-    }
-    concatenated[concatenated_length] = '\0';
-    return concatenated;*/
-    return "";
+    int fe_length = strlen(fe);
+    int concatenated_length = strlen(text) + fe_length + (fe_length > 0 ? strlen(end_fe) : 0);
+    char *concatenated = (char *) malloc(concatenated_length+1);
+    snprintf(concatenated, concatenated_length+1, "%s%s%s", fe, text, (fe_length > 0 ? end_fe : ""));
+    return concatenated;
 }
 
-#define cline_color_printff(...)
+/**
+   
+*/
+#define CLINE_FE(...) cline_fe(__FILE__, __LINE__, NARGS(CLINE_FE_PADDING_INTERNAL, __VA_ARGS__), CLINE_FE_PADDING_INTERNAL, __VA_ARGS__)
 
-#define cline_color_printfb(...)
+/**
+   
+*/
+#define CLINE_FE_STR(text, ...) cline_fe_str_with_end_fe(__FILE__, __LINE__, text, CLINE_FE(__VA_ARGS__), CLINE_FE(CLINE_FE_RESET))
 
-#define cline_color_printffb(...)
+/**
+   
+*/
+#define CLINE_FE_STR_NO_RESET(text, ...) cline_fe_str_with_end_fe(__FILE__, __LINE__, text, CLINE_FE(__VA_ARGS__), "")
 
-#define CLINE_COLORSTR cline_color_str
+/**
+   
+*/
+#define CLINE_FE_INT(number, ...) number
+
+/**
+   
+*/
+#define CLINE_FE_FLOAT(number, ...) number
 
 #ifdef __cplusplus
 }
