@@ -15,11 +15,11 @@
 extern "C" {
 #endif
 
+#include <stdarg.h>
 #include <exotic/xtd/xcommon.h>
 
 #ifdef _WIN32
 #include <windows.h>
-#include <stdarg.h>
 #endif
 
 /** 
@@ -194,6 +194,10 @@ void cline_platform_printnl_if()
     cline_platform_printnl_if(); \
     exit(EXIT_FAILURE);\
 }
+
+#ifndef snprintf
+#define snprintf(buffer, size, ...) sprintf(buffer, __VA_ARGS__)
+#endif
 
 const char *cline_fe(const char *file_name, const int line_number, const int argscount, ...)
 {
