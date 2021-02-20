@@ -1,7 +1,7 @@
 /*!gcc -ansi -pedantic-errors {0} -I. -I../../include/ -o out; ./out */
 
 #include <exotic/cester.h>
-#include <exotic/cline/colorfulterm.h>
+#include <exotic/cline/font_effect.h>
 
 CESTER_TEST(preety_print, _, {
     printf("%s%s%s\n", CLINE_FE(CLINE_FE_REVERSE_VIDEO), "Hello World", CLINE_FE(CLINE_FE_RESET));
@@ -15,7 +15,7 @@ CESTER_TEST(test_font_effect_printf, _, {
     CESTER_CAPTURE_STDOUT();
 
     CESTER_RESET_STDOUT();
-    printf("%sThe Only No Effect", CLINE_FE(CLINE_FE_NONE, CLINE_FE_FAINT, CLINE_FE_RAPID_BLINK));
+    printf("%sThe Only No Effect", CLINE_FE(CLINE_OPTION_NONE, CLINE_FE_FAINT, CLINE_FE_RAPID_BLINK));
     cester_assert_stdout_stream_content_equal("The Only No Effect");
 
     CESTER_RESET_STDOUT();
@@ -40,7 +40,7 @@ CESTER_TEST(test_font_effect_fprintf, _, {
     CESTER_CAPTURE_STDERR();
 
     CESTER_RESET_STDERR();
-    fprintf(stderr, "%sThe Only No Effect", CLINE_FE(CLINE_FE_NONE, CLINE_FE_FAINT, CLINE_FE_RAPID_BLINK));
+    fprintf(stderr, "%sThe Only No Effect", CLINE_FE(CLINE_OPTION_NONE, CLINE_FE_FAINT, CLINE_FE_RAPID_BLINK));
     cester_assert_stderr_stream_content_equal("The Only No Effect");
 
     CESTER_RESET_STDERR();

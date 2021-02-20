@@ -1,7 +1,7 @@
 /*!gcc -ansi -pedantic-errors {0} -I. -I../../../include/ -o out; ./out */
 
 #include <exotic/cline/cliarg.h>
-#include <exotic/cline/colorfulterm.h>
+#include <exotic/cline/font_effect.h>
 
 void fail_with_message(const char *message)
 {

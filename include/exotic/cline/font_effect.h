@@ -2,42 +2,33 @@
 /**
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
     \author Adewale Azeez <azeezadewale98@gmail.com>
-    \date 12 April 2021
-    \file colorfulterm.h
+    \date 12 February 2021
+    \file font_effect.h
 
-    colorfulterm.h is ...
+    font_effect.h is ...
 */
 
-#ifndef EXOTIC_CLINE_COLORFUL_TERM_H
-#define EXOTIC_CLINE_COLORFUL_TERM_H
+#ifndef EXOTIC_CLINE_FONT_EFFECT_H
+#define EXOTIC_CLINE_FONT_EFFECT_H
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <stdarg.h>
-#include <exotic/xtd/xcommon.h>
+/**
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
-
-/** 
-    parameter padding for variadic.
-    this should be temporal
 */
-#define CLINE_FE_PADDING_INTERNAL            -2
+#include "cline_common.h"
 
 /**
     The font effect macros used by cline.
-    The values are appened to '\x1B[' and prepended with 'm' 
+    The values are appened to '\x1B[' and 'm' is appended at the end 
     for the combination of multiple effects they are seperated 
     by ';' 
 
     \see https://en.wikipedia.org/wiki/ANSI_escape_code
     \see http://www.ecma-international.org/publications/standards/Ecma-048.htm
 */
-#define CLINE_FE_NONE                        -1     /**< no font effect.   */
 #define CLINE_FE_RESET                        0     /**< reset the terminal color   */
 #define CLINE_FE_BOLD                         1
 #define CLINE_FE_FAINT                        2
@@ -143,130 +134,13 @@ extern "C" {
 */
 #define CLINE_FE_BACKGROUND_MODE(mode) CLINE_FE_SET_BACKGROUND, 5, mode
 
-#ifdef _WIN32
-/**
-
-*/
-static bool already_change_mode = FALSE;
-
-/**
-
-*/
-#ifndef CLINE_WIN32_STD_STREAM_HANDLE
-/**
-
-*/
-#define CLINE_WIN32_STD_STREAM_HANDLE STD_OUTPUT_HANDLE
-#endif
-#endif
-
-/**
-
-*/
-#define NARGS_SEQ(_1,_2,_3,_4,_5,_6,_7,_8,_9,N,...) N
-
-/**
-
-*/
-#define NARGS(...) NARGS_SEQ(__VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1)
-
-/**
-   The max number of font effect options the \ref cline_fe_str accepts 
-*/
-#define CLINE_MAX_FE_OPTIONS_COUNT 20
-
-/**
-   30 should be big enough memory size to add to the text for the 
-   font effects options.
-*/
-#define CLINE_MAX_FE_OPTIONS_MEM_LENGTH 30
-
-void cline_platform_printnl_if()
-{
-    #ifndef _WIN32
-        printf("\n");
-    #endif
-}
-
-#define CLINE_DIE(file_name, line_number, ...) {\
-    printf("libcline FATAL_ERROR -> %s:%d ", file_name, line_number);\
-    printf(__VA_ARGS__); \
-    cline_platform_printnl_if(); \
-    exit(EXIT_FAILURE);\
-}
-
-#ifndef snprintf
-#define snprintf(buffer, size, ...) sprintf(buffer, __VA_ARGS__)
-#endif
-
-const char *cline_fe(const char *file_name, const int line_number, const int argscount, ...)
-{
-    va_list ap;
-    const char *p;
-    int argsindex = 0;
-    if (argscount <= 0) {
-        return "";
-    }
-    if (argscount > CLINE_MAX_FE_OPTIONS_COUNT) {
-        CLINE_DIE(file_name, line_number, "the font effect options cannot be more than %d", CLINE_MAX_FE_OPTIONS_COUNT);
-    }
-    size_t index = 0;
-    int concatenated_length = CLINE_MAX_FE_OPTIONS_MEM_LENGTH;
-    char *concatenated = (char *) malloc(concatenated_length+1);
-
-#ifdef _WIN32
-    if (!already_change_mode) {
-        /*DWORD dw_mode = 0;
-        HANDLE handle = GetStdHandle(STD_OUTPUT_HANDLE);
-        if (GetConsoleMode(handle, &dw_mode)) {
-            dw_mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
-            if (!SetConsoleMode(handle, dw_mode));
-        }*/
-        already_change_mode = TRUE;
-    }
-#endif
-    concatenated[index++] = '\x1B';
-    concatenated[index++] = '[';
-    va_start(ap, argscount);
-    while (argsindex < argscount) {
-        unsigned int font_effect = va_arg(ap, unsigned int);
-        if (argsindex == 1 && font_effect == CLINE_FE_NONE) {
-            free(concatenated);
-            return "";
-        }
-        if (font_effect == CLINE_FE_PADDING_INTERNAL) {
-            argsindex++;
-            continue;
-        }
-        concatenated[index] = '\0';
-        if (argsindex > 1) {
-            snprintf(concatenated, concatenated_length+1, "%s;%d", concatenated, font_effect);
-            index++;
-        } else {
-            snprintf(concatenated, concatenated_length+1, "%s%d", concatenated, font_effect);
-        }
-        if (font_effect < 10) {
-            index += 1;
-        } else if (font_effect < 100) {
-            index += 2;
-        } else {
-            index += 3;
-        }
-        argsindex++;
-    }
-    va_end(ap);
-    concatenated[index++] = 'm';
-    concatenated[index] = '\0';
-    return concatenated;
-}
-
 /**
     The font effect macros used by cline.
     The values are appened to '\x1B[' and prepended with 'm' 
     for the combination of multiple effects they are seperated 
     by ';' 
 
-    if the first font effect option is CLINE_FE_NONE all the font 
+    if the first font effect option is CLINE_OPTION_NONE all the font 
     effect option following it will be ignored and the text only will 
     be returned which is euivalent to just specifying the text directly, 
     this can be used to quick disable the effects without having to 
@@ -281,23 +155,24 @@ const char *cline_fe_str_with_end_fe(const char *file_name, const int line_numbe
     int concatenated_length = strlen(text) + fe_length + (fe_length > 0 ? strlen(end_fe) : 0);
     char *concatenated = (char *) malloc(concatenated_length+1);
     snprintf(concatenated, concatenated_length+1, "%s%s%s", fe, text, (fe_length > 0 ? end_fe : ""));
+    /*free((void *)text);*/
     return concatenated;
 }
 
 /**
    
 */
-#define CLINE_FE(...) cline_fe(__FILE__, __LINE__, NARGS(CLINE_FE_PADDING_INTERNAL, __VA_ARGS__), CLINE_FE_PADDING_INTERNAL, __VA_ARGS__)
+#define CLINE_FE(...) CLINE_ANSI_ENCODER('m', __VA_ARGS__)
 
 /**
    
 */
-#define CLINE_FE_STR(text, ...) cline_fe_str_with_end_fe(__FILE__, __LINE__, text, CLINE_FE(__VA_ARGS__), CLINE_FE(CLINE_FE_RESET))
+#define CLINE_FE_STR(text, ...) cline_fe_str_with_end_fe(__FILE__, __LINE__, text, CLINE_ANSI_ENCODER('m', __VA_ARGS__), CLINE_ANSI_ENCODER('m', CLINE_FE_RESET))
 
 /**
    
 */
-#define CLINE_FE_STR_NO_RESET(text, ...) cline_fe_str_with_end_fe(__FILE__, __LINE__, text, CLINE_FE(__VA_ARGS__), "")
+#define CLINE_FE_STR_NO_RESET(text, ...) cline_fe_str_with_end_fe(__FILE__, __LINE__, text, CLINE_ANSI_ENCODER('m', __VA_ARGS__), "")
 
 /**
    

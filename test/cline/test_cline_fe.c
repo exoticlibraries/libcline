@@ -1,13 +1,13 @@
-/*!gcc -ansi -pedantic-errors {0} -I. -I../../include/ -o out; ./out */
+/*!gcc {0} -I. -I../../include/ -o out; ./out */
 
 #include <exotic/cester.h>
-#include <exotic/cline/colorfulterm.h>
+#include <exotic/cline/font_effect.h>
 
 CESTER_TEST(test_font_effect_none, inst, {
-    cester_assert_str_equal(CLINE_FE(CLINE_FE_NONE), "");
-    cester_assert_str_equal(CLINE_FE(CLINE_FE_NONE, CLINE_FE_BOLD, CLINE_FE_UNDERLINE), "");
-    cester_assert_str_equal(CLINE_FE(CLINE_FE_NONE, CLINE_FE_BOLD, CLINE_FE_BACKGROUND_YELLOW, CLINE_FE_FOREGROUND_RED), "");
-    cester_assert_str_equal(CLINE_FE(CLINE_FE_NONE, CLINE_FE_FOREGROUND_BRIGHT_CYAN, CLINE_FE_BACKGROUND_BRIGHT_BLACK, CLINE_FE_FRAMED), "");
+    cester_assert_str_equal(CLINE_FE(CLINE_OPTION_NONE), "");
+    cester_assert_str_equal(CLINE_FE(CLINE_OPTION_NONE, CLINE_FE_BOLD, CLINE_FE_UNDERLINE), "");
+    cester_assert_str_equal(CLINE_FE(CLINE_OPTION_NONE, CLINE_FE_BOLD, CLINE_FE_BACKGROUND_YELLOW, CLINE_FE_FOREGROUND_RED), "");
+    cester_assert_str_equal(CLINE_FE(CLINE_OPTION_NONE, CLINE_FE_FOREGROUND_BRIGHT_CYAN, CLINE_FE_BACKGROUND_BRIGHT_BLACK, CLINE_FE_FRAMED), "");
 })
 
 CESTER_TEST(test_single_value_font_effects, inst, {

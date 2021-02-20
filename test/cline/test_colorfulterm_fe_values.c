@@ -1,11 +1,7 @@
-/*!gcc -ansi -pedantic-errors {0} -I. -I../../include/ -o out; ./out */
+/*!gcc {0} -I. -I../../include/ -o out; ./out */
 
 #include <exotic/cester.h>
-#include <exotic/cline/colorfulterm.h>
-
-CESTER_TEST(validate_negative_font_effect_values, inst, {
-    cester_assert_uint_eq(CLINE_FE_NONE, -1);
-})
+#include <exotic/cline/font_effect.h>
 
 CESTER_TEST(validate_first_11_font_effect_values, inst, {
     cester_assert_uint_eq(CLINE_FE_RESET, 0);

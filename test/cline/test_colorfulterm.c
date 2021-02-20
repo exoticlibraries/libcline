@@ -1,16 +1,16 @@
-/*!clang++ -ansi -pedantic-errors {0} -I. -I../../include/ -o out.exe; ./out.exe */
+/*!clang++ {0} -I. -I../../include/ -o out.exe; ./out.exe */
 
 #include <exotic/cester.h>
-#include <exotic/cline/colorfulterm.h>
+#include <exotic/cline/font_effect.h>
 
 CESTER_TEST(no_font_effect, inst, {
-    cester_assert_str_equal(CLINE_FE_STR("No Effect 1", CLINE_FE_NONE), "No Effect 1");
-    cester_assert_int_eq(CLINE_FE_INT(30, CLINE_FE_NONE), 30);
-    cester_assert_float_eq(CLINE_FE_FLOAT(1.65, CLINE_FE_NONE), 1.65);
+    cester_assert_str_equal(CLINE_FE_STR("No Effect 1", CLINE_OPTION_NONE), "No Effect 1");
+    cester_assert_int_eq(CLINE_FE_INT(30, CLINE_OPTION_NONE), 30);
+    cester_assert_float_eq(CLINE_FE_FLOAT(1.65, CLINE_OPTION_NONE), 1.65);
     
-    cester_assert_str_equal(CLINE_FE_STR("Ignore Other Options", CLINE_FE_NONE, CLINE_FE_BOLD, CLINE_FE_UNDERLINE), "Ignore Other Options");
-    cester_assert_int_eq(CLINE_FE_INT(30, CLINE_FE_NONE, CLINE_FE_BOLD, CLINE_FE_BACKGROUND_YELLOW, CLINE_FE_FOREGROUND_RED), 30);
-    cester_assert_float_eq(CLINE_FE_FLOAT(1.65, CLINE_FE_NONE, CLINE_FE_FOREGROUND_BRIGHT_CYAN, CLINE_FE_BACKGROUND_BRIGHT_BLACK, CLINE_FE_FRAMED), 1.65);
+    cester_assert_str_equal(CLINE_FE_STR("Ignore Other Options", CLINE_OPTION_NONE, CLINE_FE_BOLD, CLINE_FE_UNDERLINE), "Ignore Other Options");
+    cester_assert_int_eq(CLINE_FE_INT(30, CLINE_OPTION_NONE, CLINE_FE_BOLD, CLINE_FE_BACKGROUND_YELLOW, CLINE_FE_FOREGROUND_RED), 30);
+    cester_assert_float_eq(CLINE_FE_FLOAT(1.65, CLINE_OPTION_NONE, CLINE_FE_FOREGROUND_BRIGHT_CYAN, CLINE_FE_BACKGROUND_BRIGHT_BLACK, CLINE_FE_FRAMED), 1.65);
 })
 
 CESTER_TEST(dont_reset_font_effect, inst, {
