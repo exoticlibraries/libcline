@@ -144,10 +144,7 @@ extern "C" {
     effect option following it will be ignored and the text only will 
     be returned which is euivalent to just specifying the text directly, 
     this can be used to quick disable the effects without having to 
-    delete the other font effect options.
-
- TODO use reference counting to free mallocated str at end of program on call cline_terminal_cleanup
- use vector to collect them and free 
+    delete the other font effect options. 
 */
 const char *cline_fe_str_with_end_fe(const char *file_name, const int line_number, const char *text, const char *fe, const char *end_fe)
 {

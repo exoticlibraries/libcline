@@ -57,6 +57,5 @@ int main(int argc, char **argv)
     print_grayscale_colors();
     printf("\n");
 
-    /*cline_free_allocated_fe_memories();*/
     cline_platform_printnl_if();
 }

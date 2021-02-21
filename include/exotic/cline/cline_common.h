@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 #include <stdarg.h>
-#include <exotic/xtd/xvector.h>
+#include <stdio.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -60,14 +60,6 @@ extern "C" {
 */
 #define CLINE_MAX_OPTIONS_MEM_LENGTH 30
 
-/*TODO use struct should be able to free by funtioname, line number or by type use ifdef for optional 
-memory management*/
-#ifndef str
-typedef char * str;
-SETUP_XVECTOR_FOR(str);
-#endif
-static xvector(str) cline_unfreed_memories;
-
 /**
 
 */
@@ -89,7 +81,7 @@ void cline_platform_printnl_if()
 /**
 
 */
-static bool already_change_mode = FALSE;
+static unsigned already_change_mode = 0;
 
 /**
 
@@ -106,7 +98,13 @@ static bool already_change_mode = FALSE;
 #define snprintf(buffer, size, ...) sprintf(buffer, __VA_ARGS__)
 #endif
 
-const char *cline_ansi_encoder(const char *file_name, const int line_number, const char ansi_code_terminator, const int argscount, ...)
+/*  TODO use reference counting to free mallocated str at end of program on call cline_terminal_cleanup
+ use vector to collect them and free*/
+
+/**
+
+*/
+char *cline_ansi_encoder(const char *file_name, const int line_number, const char ansi_code_terminator, const int argscount, ...)
 {
     va_list ap;
     const char *p;
@@ -129,7 +127,7 @@ const char *cline_ansi_encoder(const char *file_name, const int line_number, con
             dw_mode |= ENABLE_VIRTUAL_TERMINAL_PROCESSING;
             if (!SetConsoleMode(handle, dw_mode));
         }*/
-        already_change_mode = TRUE;
+        already_change_mode = 1;
     }
 #endif
     concatenated[index++] = '\x1B';
