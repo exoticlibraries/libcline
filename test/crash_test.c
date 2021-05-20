@@ -2,21 +2,35 @@
 
 #include <stdio.h>
 
-#define clear() printf("\033[H\033[J")
-#define gotoxy(x,y) printf("\033[%d;%dH", (y), (x))
-
-int main(void)
+void spaces(int count)
 {
-    int number;
+    int s;
 
-    clear();
-    printf(
-        "Enter your number in the box below\n"
-        "┌─────────────────┑\n"
-        "┃                 ┃\n"
-        "└─────────────────┙\n"
-    );
-    gotoxy(2, 3);
-    scanf("%d", &number);
-    return 0;
+    for(s=0;s<count;s++)
+        putchar(' ');
+}
+
+int main()
+{
+    int x;
+
+    puts("i\\/\\/\\i");
+    for(x=0;x<2;x++)
+    {
+        putchar('|');
+        spaces(5);
+        puts("|");
+    }
+    puts("| (O)(O)");
+    putchar('C');
+    spaces(5);
+    printf("_)\n|");
+    spaces(2);
+    printf(",___|\n|");
+    spaces(5);
+    printf("/\n|");
+    spaces(3);
+    puts("/");
+
+    return(0);
 }
