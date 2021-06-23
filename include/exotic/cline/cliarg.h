@@ -33,6 +33,8 @@ extern "C" {
 typedef struct cline_args_option_s {
     bool mandatory;
     bool is_prefix;
+    bool case_sensitive;
+    bool is_present;
     unsigned int min_value_count;
     unsigned int max_value_count;
     char **splited_option_keys;
@@ -131,6 +133,36 @@ static enum x_stat init_cline_arg(const XAllocator *xallocator, ClineArgs **out,
 /**
 
 */
+static void destroy_cline_arg(ClineArgs *cline_arg) {
+    XIterator *iterator;
+    XIterator *sub_iterator;
+
+    iterator = XITERATOR_INIT2(xhashtable, cstr, ClineArgsGroup, cline_arg->cli_groups);
+    XFOREACH(const xhashtable_entry(cstr, ClineArgsGroup) *entry, iterator, {
+        sub_iterator = XITERATOR_INIT2(xhashtable, cstr, ClineArgsOption, entry->value.cliopts);
+        XFOREACH(const xhashtable_entry(cstr, ClineArgsOption) *sub_entry, sub_iterator, {
+            if (sub_entry->value.splited_option_keys != XTD_NULL) {
+                xfreep2p(sub_entry->value.splited_option_keys, cline_arg->allocator);
+            }
+            if (sub_entry->value.choices != XTD_NULL) {
+                xfreep2p(sub_entry->value.choices, cline_arg->allocator);
+            }
+            /*cline_arg->allocator.memory_free(&(sub_entry->value)); cahce it then free*/
+        })
+        xhashtable_destroy(cstr, ClineArgsOption)(entry->value.cliopts);
+        /*cline_arg->allocator.memory_free(&(entry->value)); cahce it then free*/
+        XITERATOR_DESTROY(sub_iterator);
+    })
+    xhashtable_destroy(cstr, ClineArgsGroup)(cline_arg->cli_groups);
+
+    XITERATOR_DESTROY(iterator);
+    cline_arg->allocator.memory_free(cline_arg);
+    cline_arg = XTD_NULL;
+}
+
+/**
+
+*/
 static enum x_stat cline_args_set_name(ClineArgs *cline_arg, char *name) {
     if (!cline_arg || !name) {
         return XTD_INVALID_PARAMETER;
@@ -181,14 +213,6 @@ static enum x_stat cline_args_set_option_delimiter(ClineArgs *cline_arg, char *o
     }
     cline_arg->option_delimiter = option_delimiter;
     return XTD_OK;
-}
-
-/**
-
-*/
-static void destroy_cline_arg(ClineArgs *cline_arg) {
-    cline_arg->allocator.memory_free(cline_arg);
-    cline_arg = XTD_NULL;
 }
 
 /**
@@ -257,7 +281,8 @@ static enum x_stat cline_args_add_cli_args_option(ClineArgs *cline_arg,
                                             const char *help_var,
                                             const char *prefix_delimeter,
                                             bool mandatory,
-                                            bool is_prefix, 
+                                            bool is_prefix,
+                                            bool case_sensitive,
                                             unsigned int min_value_count, 
                                             unsigned int max_value_count) {
     size_t index;
@@ -283,8 +308,10 @@ static enum x_stat cline_args_add_cli_args_option(ClineArgs *cline_arg,
     cline_args_option->prefix_delimeter = prefix_delimeter;
     cline_args_option->mandatory = mandatory;
     cline_args_option->is_prefix = is_prefix;
+    cline_args_option->case_sensitive = case_sensitive;
     cline_args_option->min_value_count = min_value_count;
     cline_args_option->max_value_count = max_value_count;
+    cline_args_option->is_present = FALSE;
     status = xhashtable_get(cstr, ClineArgsGroup)(cline_arg->cli_groups, (parent == XTD_NULL || xstring_cstr_is_empty(parent) ? "" : parent), &cli_group);
     if (status != XTD_OK) {
         goto cline_args_add_option_free_after_failure;
@@ -305,19 +332,19 @@ static enum x_stat cline_args_add_cli_args_option(ClineArgs *cline_arg,
 
 */
 #define cline_args_add_property(cline_arg, parent, option_str, description, help_var, mandatory) \
-    cline_args_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, TRUE, 0, 1)
+    cline_args_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, TRUE, FALSE, 0, 1)
 
 /**
 
 */
 #define cline_args_add_argument(cline_arg, parent, option_str, description, help_var, mandatory) \
-    cline_args_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, 0, 1)
+    cline_args_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, FALSE, 0, 1)
 
 /**
 
 */
 #define cline_args_add_option(cline_arg, parent, option_str, description, mandatory) \
-    cline_args_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, XTD_NULL, XTD_NULL, mandatory, FALSE, 0, 1)
+    cline_args_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, XTD_NULL, XTD_NULL, mandatory, FALSE, FALSE, 0, 1)
 
 /**
 

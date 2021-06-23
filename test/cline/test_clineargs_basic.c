@@ -20,7 +20,7 @@ CESTER_TEST(cline_arg_get_description, inst, {
 
     init_xallocator(&allocator);
     cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
-    cester_assert_str_equal(cline_arg_get_description(cline_arg), "");
+    cester_assert_ptr_equal(cline_arg_get_description(cline_arg), XTD_NULL);
     cester_assert_int_eq(cline_args_set_description(cline_arg, "A simple command line calculator"), XTD_OK);
     cester_assert_str_equal(cline_arg_get_description(cline_arg), "A simple command line calculator");
     
@@ -33,9 +33,22 @@ CESTER_TEST(cline_args_set_epilog, inst, {
 
     init_xallocator(&allocator);
     cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
-    cester_assert_str_equal(cline_arg_get_epilog(cline_arg), "");
-    cester_assert_int_eq(cline_args_set_epilog(cline_arg, "Visit https://exoticlibraries.github.io/ for more"), XTD_OK);
-    cester_assert_str_equal(cline_arg_get_epilog(cline_arg), "Visit https://exoticlibraries.github.io/ for more");
+    cester_assert_ptr_equal(cline_arg_get_epilog(cline_arg), XTD_NULL);
+    cester_assert_int_eq(cline_args_set_epilog(cline_arg, "usage: CliCalc [-h] (--number | --letters)"), XTD_OK);
+    cester_assert_str_equal(cline_arg_get_epilog(cline_arg), "usage: CliCalc [-h] (--number | --letters)");
+    
+    destroy_cline_arg(cline_arg);
+})
+
+CESTER_TEST(cline_args_set_usage, inst, {
+    ClineArgs *cline_arg;
+    XAllocator allocator;
+
+    init_xallocator(&allocator);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
+    cester_assert_ptr_equal(cline_arg_get_usage(cline_arg), XTD_NULL);
+    cester_assert_int_eq(cline_args_set_usage(cline_arg, "Visit https://exoticlibraries.github.io/ for more"), XTD_OK);
+    cester_assert_str_equal(cline_arg_get_usage(cline_arg), "Visit https://exoticlibraries.github.io/ for more");
     
     destroy_cline_arg(cline_arg);
 })
