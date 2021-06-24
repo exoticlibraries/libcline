@@ -1,5 +1,5 @@
 
-/**
+/*!
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
     \author Adewale Azeez <azeezadewale98@gmail.com>
     \date 19 February 2021
@@ -15,12 +15,12 @@
 extern "C" {
 #endif
 
-/**
+/*!
 
 */
 #include "cline_common.h"
 
-/**
+/*!
     The character that indicate which direction and position 
     the cursor should move to or which opertation should be 
     executed. 
@@ -44,82 +44,82 @@ extern "C" {
 #define CLINE_CN_SAVE_POSITION         'K'
 #define CLINE_CN_CLEAR_LINE            'K'
 
-/**
+/*!
 
 */
 #define CLINE_CN_MOVE_UP(times) CLINE_ANSI_ENCODER(CLINE_CN_UP, times)
 
-/**
+/*!
 
 */
 #define CLINE_CN_MOVE_DOWN(times) CLINE_ANSI_ENCODER(CLINE_CN_DOWN, times)
 
-/**
+/*!
 
 */
 #define CLINE_CN_MOVE_RIGHT(times) CLINE_ANSI_ENCODER(CLINE_CN_RIGHT, times)
 
-/**
+/*!
 
 */
 #define CLINE_CN_MOVE_LEFT(times) CLINE_ANSI_ENCODER(CLINE_CN_LEFT, times)
 
-/**
+/*!
 
 */
 #define CLINE_CN_MOVE_NEXT_LINE(position) CLINE_ANSI_ENCODER(CLINE_CN_NEXT_LINE, position)
 
-/**
+/*!
 
 */
 #define CLINE_CN_MOVE_PREVIOUS_LINE(position) CLINE_ANSI_ENCODER(CLINE_CN_PREVIOUS_LINE, position)
 
-/**
+/*!
 
 */
 #define CLINE_CN_MOVE_TO_COLUMN(column) CLINE_ANSI_ENCODER(CLINE_CN_SET_COLUMN, column)
 
-/**
+/*!
 
 */
 #define CLINE_CN_MOVE_TO_POSITION(row, column) CLINE_ANSI_ENCODER(CLINE_CN_POSITION, row, column)
 
-/**
+/*!
 
 */
 #define CLINE_CN_CLEAR_TERMINAL_SCREEN_WITH(code) CLINE_ANSI_ENCODER(CLINE_CN_CLEAR_SCREEN, code)
 
-/**
+/*!
 
 */
 #define CLINE_CN_CLEAR_TERMINAL_SCREEN_TO_BOTTOM() CLINE_ANSI_ENCODER(CLINE_CN_CLEAR_SCREEN, 0)
 
-/**
+/*!
 
 */
 #define CLINE_CN_CLEAR_TERMINAL_SCREEN_TO_TOP() CLINE_ANSI_ENCODER(CLINE_CN_CLEAR_SCREEN, 1)
 
-/**
+/*!
 
 */
 #define CLINE_CN_CLEAR_TERMINAL_SCREEN() CLINE_ANSI_ENCODER(CLINE_CN_CLEAR_SCREEN, 2)
 
-/**
+/*!
 
 */
 #define CLINE_CN_CLEAR_TERMINAL_LINE_WITH(code) CLINE_ANSI_ENCODER(CLINE_CN_CLEAR_LINE, code)
 
-/**
+/*!
 
 */
 #define CLINE_CN_CLEAR_TERMINAL_LINE_TO_END() CLINE_ANSI_ENCODER(CLINE_CN_CLEAR_LINE, 0)
 
-/**
+/*!
 
 */
 #define CLINE_CN_CLEAR_TERMINAL_LINE_TO_BEGINNING() CLINE_ANSI_ENCODER(CLINE_CN_CLEAR_LINE, 1)
 
-/**
+/*!
 
 */
 #define CLINE_CN_CLEAR_TERMINAL_LINE() CLINE_ANSI_ENCODER(CLINE_CN_CLEAR_LINE, 2)

@@ -1,5 +1,5 @@
 
-/**
+/*!
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
     \author Adewale Azeez <azeezadewale98@gmail.com>
     \date 12 February 2021
@@ -15,12 +15,12 @@
 extern "C" {
 #endif
 
-/**
+/*!
 
 */
 #include "cline_common.h"
 
-/**
+/*!
     The font effect macros used by cline.
     The values are appened to '\x1B[' and 'm' is appended at the end 
     for the combination of multiple effects they are seperated 
@@ -29,7 +29,7 @@ extern "C" {
     \see https://en.wikipedia.org/wiki/ANSI_escape_code
     \see http://www.ecma-international.org/publications/standards/Ecma-048.htm
 */
-#define CLINE_FE_RESET                        0     /**< reset the terminal color   */
+#define CLINE_FE_RESET                        0     /*!< reset the terminal color   */
 #define CLINE_FE_BOLD                         1
 #define CLINE_FE_FAINT                        2
 #define CLINE_FE_ITALIC                       3
@@ -114,27 +114,27 @@ extern "C" {
 #define CLINE_FE_BACKGROUND_BRIGHT_CYAN       106
 #define CLINE_FE_BACKGROUND_BRIGHT_WHITE      107
 
-/**
+/*!
 
 */
 #define CLINE_FE_FOREGROUND_RGB(r, g, b) CLINE_FE_SET_FOREGROUND, 2, r, g, b
 
-/**
+/*!
 
 */
 #define CLINE_FE_BACKGROUND_RGB(r, g, b) CLINE_FE_SET_BACKGROUND, 2, r, g, b
 
-/**
+/*!
 
 */
 #define CLINE_FE_FOREGROUND_MODE(mode) CLINE_FE_SET_FOREGROUND, 5, mode
 
-/**
+/*!
 
 */
 #define CLINE_FE_BACKGROUND_MODE(mode) CLINE_FE_SET_BACKGROUND, 5, mode
 
-/**
+/*!
     The font effect macros used by cline.
     The values are appened to '\x1B[' and prepended with 'm' 
     for the combination of multiple effects they are seperated 
@@ -156,27 +156,27 @@ const char *cline_fe_str_with_end_fe(const char *file_name, const int line_numbe
     return concatenated;
 }
 
-/**
+/*!
    
 */
 #define CLINE_FE(...) CLINE_ANSI_ENCODER('m', __VA_ARGS__)
 
-/**
+/*!
    
 */
 #define CLINE_FE_STR(text, ...) cline_fe_str_with_end_fe(__FILE__, __LINE__, text, CLINE_ANSI_ENCODER('m', __VA_ARGS__), CLINE_ANSI_ENCODER('m', CLINE_FE_RESET))
 
-/**
+/*!
    
 */
 #define CLINE_FE_STR_NO_RESET(text, ...) cline_fe_str_with_end_fe(__FILE__, __LINE__, text, CLINE_ANSI_ENCODER('m', __VA_ARGS__), "")
 
-/**
+/*!
    
 */
 #define CLINE_FE_INT(number, ...) number
 
-/**
+/*!
    
 */
 #define CLINE_FE_FLOAT(number, ...) number

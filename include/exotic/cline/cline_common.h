@@ -1,5 +1,5 @@
 
-/**
+/*!
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
     \author Adewale Azeez <azeezadewale98@gmail.com>
     \date 19 February 2021
@@ -22,45 +22,45 @@ extern "C" {
 #include <windows.h>
 #endif
 
-/** 
+/*! 
     parameter padding for variadic.
     this should be temporal
 */
 #define CLINE_FE_PADDING_INTERNAL    -100
 
-/** 
+/*! 
     if this is part of the options all other 
     options sent to the function will be ignored.
 */
 #define CLINE_OPTION_NONE    -101
 
-/** 
+/*! 
     The bell char that do ding in the terminal
 */
 #define CLINE_BELL    '\a'
 
-/**
+/*!
 
 */
 #define NARGS_SEQ(_1,_2,_3,_4,_5,_6,_7,_8,_9,N,...) N
 
-/**
+/*!
 
 */
 #define NARGS(...) NARGS_SEQ(__VA_ARGS__, 9, 8, 7, 6, 5, 4, 3, 2, 1)
 
-/**
+/*!
    The max number of font effect options the \ref cline_fe_str accepts 
 */
 #define CLINE_MAX_OPTIONS_COUNT 20
 
-/**
+/*!
    30 should be big enough memory size to add to the text for the 
    font effects options.
 */
 #define CLINE_MAX_OPTIONS_MEM_LENGTH 30
 
-/**
+/*!
 
 */
 void cline_platform_printnl_if()
@@ -78,16 +78,16 @@ void cline_platform_printnl_if()
 }
 
 #ifdef _WIN32
-/**
+/*!
 
 */
 static unsigned already_change_mode = 0;
 
-/**
+/*!
 
 */
 #ifndef CLINE_WIN32_STD_STREAM_HANDLE
-/**
+/*!
 
 */
 #define CLINE_WIN32_STD_STREAM_HANDLE STD_OUTPUT_HANDLE
@@ -101,7 +101,7 @@ static unsigned already_change_mode = 0;
 /*  TODO use reference counting to free mallocated str at end of program on call cline_terminal_cleanup
  use vector to collect them and free*/
 
-/**
+/*!
 
 */
 char *cline_ansi_encoder(const char *file_name, const int line_number, const char ansi_code_terminator, const int argscount, ...)
@@ -165,12 +165,12 @@ char *cline_ansi_encoder(const char *file_name, const int line_number, const cha
     return concatenated;
 }
 
-/**
+/*!
    
 */
 #define CLINE_ANSI_ENCODER(ansi_code_terminator, ...) cline_ansi_encoder(__FILE__, __LINE__, ansi_code_terminator, NARGS(CLINE_FE_PADDING_INTERNAL, __VA_ARGS__), CLINE_FE_PADDING_INTERNAL, __VA_ARGS__)
 
-/**
+/*!
    
 */
 #define CLINE_ANSI_ENCODER_ESCAPE_ONLY(ansi_code_terminator) cline_ansi_encoder(__FILE__, __LINE__, ansi_code_terminator, 0)
