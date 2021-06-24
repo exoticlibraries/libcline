@@ -90,12 +90,12 @@ CESTER_TEST(cline_arg_get_arg_option, inst, {
     cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "--verbose", "Be extra verbose", FALSE), XTD_OK);
     
     cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "--version", &cline_arg_option), TRUE);
-    cester_assert_str_equal_(cline_arg_option.splited_option_keys[0], "-v");
-    cester_assert_str_equal_(cline_arg_option.splited_option_keys[1], "--version");
-    cester_assert_str_equal_(cline_arg_option.description, "Print the version information and exit");
+    cester_assert_str_equal_(cline_arg_option->splited_option_keys[0], "-v");
+    cester_assert_str_equal_(cline_arg_option->splited_option_keys[1], "--version");
+    cester_assert_str_equal_(cline_arg_option->description, "Print the version information and exit");
     cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "--verbose", &cline_arg_option), TRUE);
-    cester_assert_str_equal_(cline_arg_option.splited_option_keys[0], "--verbose");
-    cester_assert_str_equal_(cline_arg_option.description, "Be extra verbose");
+    cester_assert_str_equal_(cline_arg_option->splited_option_keys[0], "--verbose");
+    cester_assert_str_equal_(cline_arg_option->description, "Be extra verbose");
     cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "--debug", &cline_arg_option), FALSE);
 
     destroy_cline_arg(cline_arg);
@@ -203,9 +203,26 @@ CESTER_TEST(cline_arg_add_property, inst, {
     cester_assert_int_eq(cline_arg_add_property(cline_arg, XTD_NULL, "-I<:>/I", "Specify the include path", "include_path", FALSE), XTD_OK);
     cester_assert_int_eq(cline_arg_add_property(cline_arg, XTD_NULL, "-X<:>/X", "Send option to the assembler", "option", FALSE), XTD_OK);
     cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "-I", &cline_arg_option), TRUE);
-    cester_assert_int_eq(cline_arg_option.is_prefix, TRUE);
+    cester_assert_int_eq(cline_arg_option->is_prefix, TRUE);
     cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "/X", &cline_arg_option), TRUE);
-    cester_assert_int_eq(cline_arg_option.is_prefix, TRUE);
+    cester_assert_int_eq(cline_arg_option->is_prefix, TRUE);
+
+    destroy_cline_arg(cline_arg);
+})
+
+CESTER_TEST(cline_arg_add_property_suffix, inst, {
+    ClineArgs *cline_arg;
+    XAllocator allocator;
+    ClineArgsOption cline_arg_option;
+
+    init_xallocator(&allocator);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_property_suffix(cline_arg, XTD_NULL, "-I<:>/I", "Specify the include path", "include_path", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_property_suffix(cline_arg, XTD_NULL, "-X<:>/X", "Send option to the assembler", "option", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "-I", &cline_arg_option), TRUE);
+    cester_assert_int_eq(cline_arg_option->is_suffix, TRUE);
+    cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "/X", &cline_arg_option), TRUE);
+    cester_assert_int_eq(cline_arg_option->is_suffix, TRUE);
 
     destroy_cline_arg(cline_arg);
 })
@@ -220,9 +237,9 @@ CESTER_TEST(cline_arg_add_ignored, inst, {
     cester_assert_int_eq(cline_arg_add_ignored(cline_arg, "--cester", TRUE), XTD_OK);
     cester_assert_int_eq(cline_arg_add_ignored(cline_arg, "--cline", FALSE), XTD_OK);
     cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "--cester", &cline_arg_option), TRUE);
-    cester_assert_int_eq(cline_arg_option.ignored, TRUE);
+    cester_assert_int_eq(cline_arg_option->ignored, TRUE);
     cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "--cline", &cline_arg_option), TRUE);
-    cester_assert_int_eq(cline_arg_option.ignored, TRUE);
+    cester_assert_int_eq(cline_arg_option->ignored, TRUE);
 
     destroy_cline_arg(cline_arg);
 })

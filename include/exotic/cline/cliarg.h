@@ -32,6 +32,7 @@ extern "C" {
 struct cline_arg_option_s {
     bool mandatory;
     bool is_prefix;
+    bool is_suffix;
     bool case_sensitive;
     bool is_present;
     bool ignored;
@@ -239,7 +240,7 @@ static enum x_stat cline_arg_set_option_delimiter(ClineArgs *cline_arg, char *op
 /*!
 
 */
-static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *parent, const char *flag, ClineArgsOption **cli_opt, char **matching_key, bool check_starts_with) {
+static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *parent, const char *flag, ClineArgsOption *cli_opt, char **matching_key, bool check_starts_with, bool check_ends_with) {
     size_t index;
     enum x_stat status;
     ClineArgsGroup cli_group;
@@ -261,7 +262,8 @@ static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *parent, 
     iterator = XITERATOR_INIT2(xhashtable, cstr, ClineArgsOption, cli_group->cliopts);
     XFOREACH(const xhashtable_entry(cstr, ClineArgsOption) *entry, iterator, {
         if (xstring_cstr_equals(entry->key, flag) || 
-            ((entry->value->is_prefix || check_starts_with) && xstring_cstr_starts_with(flag, entry->key))) {
+            ((entry->value->is_prefix || check_starts_with) && xstring_cstr_starts_with(flag, entry->key)) || 
+            ((entry->value->is_suffix || check_ends_with) && xstring_cstr_ends_with(flag, entry->key))) {
                 if (matching_key) {
                     *matching_key = entry->key;
                 }
@@ -269,7 +271,8 @@ static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *parent, 
         }
         for (index = 0; entry->value->splited_option_keys[index] != XTD_NULL; index++) {
             if (xstring_cstr_equals(entry->value->splited_option_keys[index], flag) || 
-                ((entry->value->is_prefix || check_starts_with) && xstring_cstr_starts_with(flag, entry->value->splited_option_keys[index]))) {
+                ((entry->value->is_prefix || check_starts_with) && xstring_cstr_starts_with(flag, entry->value->splited_option_keys[index])) || 
+                ((entry->value->is_suffix || check_ends_with) && xstring_cstr_ends_with(flag, entry->value->splited_option_keys[index]))) {
                     if (matching_key) {
                         *matching_key = entry->value->splited_option_keys[index];
                     }
@@ -294,7 +297,7 @@ static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *parent, 
 */
 static bool cline_arg_has_option(ClineArgs *cline_arg, const char *parent, const char *flag) {
     ClineArgsOption cli_opt;
-    return cline_arg_find_arg_option(cline_arg, parent, flag, &cli_opt, XTD_NULL, FALSE) == TRUE && cli_opt->is_present;
+    return cline_arg_find_arg_option(cline_arg, parent, flag, &cli_opt, XTD_NULL, FALSE, FALSE) == TRUE && cli_opt->is_present;
 }
 
 /*!
@@ -302,7 +305,7 @@ static bool cline_arg_has_option(ClineArgs *cline_arg, const char *parent, const
 */
 static size_t cline_arg_get_option_values(ClineArgs *cline_arg, const char *parent, const char *flag, char ***values) {
     ClineArgsOption cli_opt;
-    bool is_present = cline_arg_find_arg_option(cline_arg, parent, flag, &cli_opt, XTD_NULL, FALSE) == TRUE && cli_opt->is_present;
+    bool is_present = cline_arg_find_arg_option(cline_arg, parent, flag, &cli_opt, XTD_NULL, FALSE, FALSE) == TRUE && cli_opt->is_present;
 
     if (!is_present || cli_opt->values == XTD_NULL) { return 0; }
     if (values != XTD_NULL) {
@@ -314,7 +317,7 @@ static size_t cline_arg_get_option_values(ClineArgs *cline_arg, const char *pare
 /*!
 
 */
-#define cline_arg_get_arg_option(cline_arg, parent, flag, cli_opt) cline_arg_find_arg_option(cline_arg, parent, flag, cli_opt, XTD_NULL, FALSE)
+#define cline_arg_get_arg_option(cline_arg, parent, flag, cli_opt) cline_arg_find_arg_option(cline_arg, parent, flag, cli_opt, XTD_NULL, FALSE, FALSE)
 
 /*!
 
@@ -380,6 +383,7 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
                                            const char *prefix_delimeter,
                                             bool mandatory,
                                             bool is_prefix,
+                                            bool is_suffix,
                                             bool case_sensitive,
                                             bool ignored,
                                             unsigned int min_value_count, 
@@ -407,6 +411,7 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
     cline_arg_option->prefix_delimeter = prefix_delimeter;
     cline_arg_option->mandatory = mandatory;
     cline_arg_option->is_prefix = is_prefix;
+    cline_arg_option->is_suffix = is_suffix;
     cline_arg_option->case_sensitive = case_sensitive;
     cline_arg_option->min_value_count = min_value_count;
     cline_arg_option->max_value_count = max_value_count;
@@ -433,30 +438,37 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
 
 */
 #define cline_arg_add_property(cline_arg, parent, option_str, description, help_var, mandatory) \
-    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, TRUE, FALSE, FALSE, 1, 1)
+    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, TRUE, FALSE, FALSE, FALSE, 1, 1)
+
+/*!
+
+*/
+#define cline_arg_add_property_suffix(cline_arg, parent, option_str, description, help_var, mandatory) \
+    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, TRUE, FALSE, FALSE, 1, 1)
 
 /*!
 
 */
 #define cline_arg_add_argument(cline_arg, parent, option_str, description, help_var, mandatory) \
-    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, FALSE, FALSE, 1, 1)
+    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, FALSE, FALSE, FALSE, 1, 1)
 
 /*!
 
 */
 #define cline_arg_add_option(cline_arg, parent, option_str, description, mandatory) \
-    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, XTD_NULL, XTD_NULL, mandatory, FALSE, FALSE, FALSE, 0, 1)
+    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, XTD_NULL, XTD_NULL, mandatory, FALSE, FALSE, FALSE, FALSE, 0, 1)
 
 /*!
 
 */
 #define cline_arg_add_ignored(cline_arg, option_str, is_prefix) \
-    cline_arg_add_cli_args_option(cline_arg, XTD_NULL, option_str, XTD_NULL, XTD_NULL, XTD_NULL, XTD_NULL, XTD_NULL, FALSE, is_prefix, FALSE, TRUE, 0, 1)
+    cline_arg_add_cli_args_option(cline_arg, XTD_NULL, option_str, XTD_NULL, XTD_NULL, XTD_NULL, XTD_NULL, XTD_NULL, FALSE, is_prefix, FALSE, FALSE, TRUE, 0, 1)
 
 /*!
 
 */
 static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, size_t argc, char **argv) {
+    enum x_stat status;
     size_t index;
     size_t sub_index;
     size_t index_cache;
@@ -472,9 +484,10 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
     for (index = from; index < argc; index++) {
         printf("OK to next %d\n", index);
         argument_length = xstring_cstr_length(argv[index]);
-        if (cline_arg_find_arg_option(cline_arg, XTD_NULL, argv[index], &cline_arg_option, &matching_value, TRUE) == FALSE || 
-                (!cline_arg_option->is_prefix && !xstring_cstr_equals(argv[index], matching_value))) {
-            printf("Invalid param %s\n\n", argv[index]);
+        if (cline_arg_find_arg_option(cline_arg, XTD_NULL, argv[index], &cline_arg_option, &matching_value, TRUE, TRUE) == FALSE || 
+                ((!cline_arg_option->is_prefix && !xstring_cstr_equals(argv[index], matching_value)) && 
+                (!cline_arg_option->is_suffix && !xstring_cstr_equals(argv[index], matching_value)))) {
+            printf("Invalid param %s\n\n", argv[index], matching_value);
             return XTD_INVALID_PARAMETER_FOUND_ERR;
         }
         if (cline_arg_option->ignored) {
@@ -497,12 +510,13 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
                 printf("  FOUND:%s\n", val);
             }
             printf(" VALUES AGGR: %d \n", cline_arg_option->found_value_count);
-            if ((!cline_arg_option->is_prefix && cline_arg_option->found_value_count < cline_arg_option->min_value_count) || 
-                (cline_arg_option->is_prefix && argument_length == matching_value_length)) {
+            if ((!cline_arg_option->is_prefix && !cline_arg_option->is_suffix && cline_arg_option->found_value_count < cline_arg_option->min_value_count) || 
+                (cline_arg_option->is_prefix && argument_length == matching_value_length) ||
+                (cline_arg_option->is_suffix && argument_length == matching_value_length)) {
                 printf("TERMINATE ::%d ::%d ::%d\n\n", cline_arg_option->is_prefix, argument_length, matching_value_length);
                 return XTD_VALUE_NOT_FOUND_ERR;
             }
-            if (cline_arg_option->is_prefix) {
+            if (cline_arg_option->is_prefix || cline_arg_option->is_suffix) {
                 cline_arg_option->found_value_count++;
             }
             printf("The FVC::%d\n", cline_arg_option->found_value_count);
@@ -516,9 +530,14 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
                 }
                 cline_arg_option->values = values_expander;
             }
-            if (cline_arg_option->is_prefix) {
+            if (cline_arg_option->is_prefix || cline_arg_option->is_suffix) {
                 char *suffix_value = (char *) cline_arg->allocator.memory_calloc(argument_length-matching_value_length, sizeof(char));
-                if (xstring_cstr_sub_string(argv[index], matching_value_length, suffix_value)) {
+                if (cline_arg_option->is_prefix) {
+                    status = xstring_cstr_sub_string(argv[index], matching_value_length, suffix_value);
+                } else {
+                    status = xstring_cstr_sub_string_in_range(argv[index], 0, argument_length-matching_value_length, suffix_value);
+                }
+                if (status != XTD_OK) {
                     cline_arg->allocator.memory_free(cline_arg_option->values);
                     return XTD_VALUE_NOT_FOUND_ERR;
                 }
