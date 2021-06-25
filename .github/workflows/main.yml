@@ -25,12 +25,16 @@ jobs:
         with:
           download-exotic-libraries: true
           run-regression: true
+          test-folder-recursive: true
+          selected-exotic-libraries: |
+            libcester
+            libxtd
           test-folders: |
             test/
           test-exclude-file-pattern: |
             crash_test.c
           compiler-options-for-tests: |
-            -I../include -I./include
+            -I. -I../include -I../../include -I../../../include -I./include
           regression-cli-options: |
             --cester-printversion
             
@@ -44,6 +48,15 @@ jobs:
     steps:
       - name: Checkout
         uses: actions/checkout@v2
+        
+      - name: Setup Exotic Libraries
+        uses: exoticlibraries/exotic-action@v1.3
+        with:
+          download-exotic-libraries: true
+          run-regression: false
+          selected-exotic-libraries: |
+            libcester
+            libxtd
         
       - name: Download Dependencies
         run: |
