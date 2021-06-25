@@ -281,7 +281,7 @@ static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *parent, 
         }
         continue;
         cline_arg_find_arg_option_return:
-            if (cli_opt) {
+            if (cli_opt != XTD_NULL) {
                 *cli_opt = entry->value;
             }
             XITERATOR_DESTROY(iterator);
@@ -475,6 +475,7 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
 */
 static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, size_t argc, char **argv) {
     enum x_stat status;
+    bool is_true;
     size_t index;
     size_t sub_index;
     size_t index_cache;
@@ -513,6 +514,20 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
                     index--;
                     break;
                 }
+                if (cline_arg_option->choices != XTD_NULL) {
+                    is_true = FALSE;
+                    for (sub_index = 0; cline_arg_option->choices[sub_index] != XTD_NULL; sub_index++) {
+                        printf("     Checking against:%s\n", cline_arg_option->choices[sub_index]);
+                        if (xstring_cstr_equals(cline_arg_option->choices[sub_index], val)) {
+                            is_true = TRUE;
+                            break;
+                        }
+                    }
+                    if (!is_true) {
+                        printf("  Not FOUND in choice:%s\n\n", val);
+                        return XTD_KEY_NOT_FOUND_ERR;
+                    }
+                }
                 printf("  FOUND:%s\n", val);
             }
             printf(" VALUES AGGR: %d \n", cline_arg_option->found_value_count);
@@ -527,9 +542,9 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
             }
             printf("The FVC::%d\n", cline_arg_option->found_value_count);
             if (cline_arg_option->values == XTD_NULL) {
-                cline_arg_option->values = (char **) cline_arg->allocator.memory_calloc(cline_arg_option->found_value_count, sizeof(char *));
+                cline_arg_option->values = (char **) cline_arg->allocator.memory_calloc(50, sizeof(char *));
             } else {
-                values_expander = (char **) cline_arg->allocator.memory_realloc(cline_arg_option->values, cline_arg_option->found_value_count * sizeof(char *));
+                values_expander = (char **) cline_arg->allocator.memory_realloc(50, cline_arg_option->found_value_count * sizeof(char *));
                 if (!values_expander) {
                     cline_arg->allocator.memory_free(cline_arg_option->values);
                     return XTD_ALLOC_ERR;
@@ -551,11 +566,13 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
                 cline_arg_option->values[value_count_index++] = suffix_value;
             } else {
                 for (; index_cache < index+1; index_cache++, value_count_index++) {
-                    printf("  STORING FOUND:%d:%d:%d:%s\n", cline_arg_option->found_value_count, value_count_index, index_cache, argv[index_cache]);
+                    printf("  STORING FOUND:%d:%d:%d:%s", cline_arg_option->found_value_count, value_count_index, index_cache, argv[index_cache]);
                     cline_arg_option->values[value_count_index] = argv[index_cache];
+                    printf("==>Done\n");
                 }
             }
         }
+        printf("================================================");
         printf("\n\n");
     }
     return XTD_OK;

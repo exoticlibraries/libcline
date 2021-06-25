@@ -230,15 +230,21 @@ CESTER_TEST(cline_arg_add_property_suffix, inst, {
 CESTER_TEST(cline_arg_add_choice, inst, {
     ClineArgs *cline_arg;
     XAllocator allocator;
+    ClineArgsOption cline_arg_option;
 
     init_xallocator(&allocator);
     cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
-    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--user", "Specify the include path", "Student|Teacher|Admin", FALSE), XTD_OK);
-    /*cester_assert_int_eq(cline_arg_add_property_suffix(cline_arg, XTD_NULL, "-X<:>/X", "Send option to the assembler", "option", FALSE), XTD_OK);
-    cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "-I", &cline_arg_option), TRUE);
-    cester_assert_int_eq(cline_arg_option->is_suffix, TRUE);
-    cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "/X", &cline_arg_option), TRUE);
-    cester_assert_int_eq(cline_arg_option->is_suffix, TRUE);*/
+    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--user", "Specify the include path", "Student|Teacher|Admin|Executive", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--door", "Send option to the assembler", "Open|Close", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "-I", &cline_arg_option), FALSE);
+    cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "--user", &cline_arg_option), TRUE);
+    cester_assert_str_equal_(cline_arg_option->choices[0], "Student");
+    cester_assert_str_equal_(cline_arg_option->choices[1], "Teacher");
+    cester_assert_str_equal_(cline_arg_option->choices[2], "Admin");
+    cester_assert_str_equal_(cline_arg_option->choices[3], "Executive");
+    cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "--door", &cline_arg_option), TRUE);
+    cester_assert_str_equal_(cline_arg_option->choices[0], "Open");
+    cester_assert_str_equal_(cline_arg_option->choices[1], "Close");
 
     destroy_cline_arg(cline_arg);
 })
