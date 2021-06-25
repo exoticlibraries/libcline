@@ -27,8 +27,8 @@ jobs:
           run-regression: true
           test-folder-recursive: true
           selected-exotic-libraries: |
-            libcester
-            libxtd
+            libcester@dev
+            libxtd@dev
           test-folders: |
             test/
           test-exclude-file-pattern: |
@@ -55,8 +55,8 @@ jobs:
           download-exotic-libraries: true
           run-regression: false
           selected-exotic-libraries: |
-            libcester
-            libxtd
+            libcester@dev
+            libxtd@dev
         
       - name: Download Dependencies
         run: |
