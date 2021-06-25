@@ -461,6 +461,12 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
 /*!
 
 */
+#define cline_arg_add_choice(cline_arg, parent, option_str, description, choice_str, mandatory) \
+    cline_arg_add_cli_args_option(cline_arg, parent, option_str, choice_str, description, XTD_NULL, XTD_NULL, XTD_NULL, mandatory, FALSE, FALSE, FALSE, FALSE, 1, 1)
+
+/*!
+
+*/
 #define cline_arg_add_ignored(cline_arg, option_str, is_prefix) \
     cline_arg_add_cli_args_option(cline_arg, XTD_NULL, option_str, XTD_NULL, XTD_NULL, XTD_NULL, XTD_NULL, XTD_NULL, FALSE, is_prefix, FALSE, FALSE, TRUE, 0, 1)
 
