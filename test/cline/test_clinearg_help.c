@@ -221,11 +221,11 @@ CESTER_TEST(cline_arg_help_description_and_others, inst, {
     init_xallocator(&allocator);
     cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
     cester_assert_int_eq(cline_arg_set_description(cline_arg, "A simple command line calculator"), XTD_OK);
-    cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "-h", "Print this help message", FALSE), XTD_OK);
     cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "--version", "Print the version information and exit", TRUE), XTD_OK);
     cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "--verbose", "Be extra verbose", TRUE), XTD_OK);
-    cester_assert_int_eq(cline_arg_add_cli_args_option(cline_arg, XTD_NULL, "--help", XTD_NULL, "Supported file formats", 
-                                                        XTD_NULL, "file-format", XTD_NULL, FALSE, FALSE, FALSE, FALSE, FALSE, 1, 3), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_cli_args_option(cline_arg, XTD_NULL, "--help", XTD_NULL, "Display help information for specific section", 
+                                                        XTD_NULL, "section", "=", FALSE, FALSE, FALSE, FALSE, FALSE, 1, 1), XTD_OK);
+    cester_assert_int_eq(cline_arg_collect_orphans(cline_arg, "source", TRUE), XTD_OK);
     cester_assert_int_eq(cline_arg_section_help(cline_arg, XTD_NULL, XTD_NULL, &help_text), XTD_OK);
     printf("%s", help_text);
     /*cester_assert_str_equal_(help_text, "usage: CliCalc [-h] [--help <section>] --verbose --version\n"

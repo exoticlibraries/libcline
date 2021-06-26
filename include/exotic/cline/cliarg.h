@@ -499,13 +499,13 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
 /*!
 
 */
-static enum x_stat cline_arg_collect_orphans(ClineArgs *cline_arg, bool collect_orphans) {
+static enum x_stat cline_arg_collect_orphans(ClineArgs *cline_arg, const char *help_var, bool collect_orphans) {
     enum x_stat status;
     if (!cline_arg || collect_orphans < 0 || collect_orphans > 1) {
         return XTD_INVALID_PARAMETER;
     }
     status = cline_arg_add_cli_args_option(cline_arg, XTD_NULL, EXOTIC_CLINE_ORPHAN_PARAM_KEY, XTD_NULL, XTD_NULL, 
-                                                        XTD_NULL, "...", XTD_NULL, FALSE, FALSE, FALSE, FALSE, FALSE, 0, (sizeof(size_t)-1/2));
+                                                        XTD_NULL, help_var, XTD_NULL, FALSE, FALSE, FALSE, FALSE, FALSE, 0, (sizeof(size_t)-1/2));
     if (status != XTD_OK) {
         return status;
     }
@@ -740,6 +740,11 @@ static enum x_stat cline_arg_set_section_epilog(ClineArgs *cline_arg, const char
 /*!
 
 */
+#define CLINE_ARG_ORPHAN_OR_OPTION__INTERNAL__(option) (xstring_cstr_equals(option->key, EXOTIC_CLINE_ORPHAN_PARAM_KEY) ? option->value->help_var : option->value->splited_option_keys[0])
+
+/*!
+
+*/
 #define CLINE_ARG_TRANSLATE__INTERNAL__(sentence) (translate_sentence != XTD_NULL ? translate_sentence(sentence) : sentence)
 
 /*!
@@ -754,6 +759,7 @@ static enum x_stat cline_arg_section_help(ClineArgs *cline_arg, const char *sect
     size_t index;
     size_t option_text_length = 0;
     char *text;
+    char *cached_text = XTD_NULL;
     char *help_var_text = XTD_NULL;
     char *option_text = XTD_NULL;
     char *usage_text = XTD_NULL;
@@ -778,7 +784,7 @@ static enum x_stat cline_arg_section_help(ClineArgs *cline_arg, const char *sect
                 XFOREACH(const xhashtable_entry(cstr, ClineArgsOption) *sub_entry, sub_iterator, {
                     if (sub_entry->value->help_var != XTD_NULL) {
                         if (!sub_entry->value->is_prefix && !sub_entry->value->is_suffix) {
-                            help_var_text = xstring_cstr_concat_cstr(help_var_text, " ", cline_arg->allocator);
+                            help_var_text = xstring_cstr_concat_cstr(help_var_text, (sub_entry->value->prefix_delimeter != XTD_NULL ? sub_entry->value->prefix_delimeter : " "), cline_arg->allocator);
                         }
                         help_var_text = xstring_cstr_concat_cstr(help_var_text, "<", cline_arg->allocator);
                         help_var_text = xstring_cstr_concat_cstr(help_var_text, sub_entry->value->help_var, cline_arg->allocator);
@@ -795,8 +801,13 @@ static enum x_stat cline_arg_section_help(ClineArgs *cline_arg, const char *sect
                         cline_arg->allocator.memory_free(help_var_text);
                         help_var_text = XTD_NULL;
                     }
-                    usage_text = xstring_cstr_concat_cstr(usage_text, sub_entry->value->splited_option_keys[0], cline_arg->allocator);
-                    option_text = xstring_cstr_concat_cstr(option_text, sub_entry->value->splited_option_keys[0], cline_arg->allocator);
+                    usage_text = xstring_cstr_concat_cstr(usage_text, CLINE_ARG_ORPHAN_OR_OPTION__INTERNAL__(sub_entry), cline_arg->allocator);
+                    option_text = xstring_cstr_concat_cstr(option_text, CLINE_ARG_ORPHAN_OR_OPTION__INTERNAL__(sub_entry), cline_arg->allocator);
+                    if (xstring_cstr_equals(sub_entry->key, EXOTIC_CLINE_ORPHAN_PARAM_KEY)) {
+                        cached_text = sub_entry->value->description;
+                        sub_entry->value->description = XTD_NULL;
+                        sub_entry->value->help_var = XTD_NULL;
+                    }
                     if (help_var_text != XTD_NULL && !sub_entry->value->is_suffix) {
                         usage_text = xstring_cstr_concat_cstr(usage_text, help_var_text, cline_arg->allocator);
                         option_text = xstring_cstr_concat_cstr(option_text, help_var_text, cline_arg->allocator);
@@ -840,9 +851,11 @@ static enum x_stat cline_arg_section_help(ClineArgs *cline_arg, const char *sect
                     if (!sub_entry->value->mandatory) {
                         usage_text = xstring_cstr_concat_char(usage_text, ']', cline_arg->allocator);
                     }
-                    option_text = xstring_cstr_concat_cstr(option_text, (sub_entry->value->description != XTD_NULL ? sub_entry->value->description : ""), cline_arg->allocator);
-                    option_text = xstring_cstr_concat_char(option_text, '\n', cline_arg->allocator);
-                    options_text = xstring_cstr_concat_cstr(options_text, option_text, cline_arg->allocator);
+                    if (sub_entry->value->description != XTD_NULL) {
+                        option_text = xstring_cstr_concat_cstr(option_text, sub_entry->value->description, cline_arg->allocator);
+                        option_text = xstring_cstr_concat_char(option_text, '\n', cline_arg->allocator);
+                        options_text = xstring_cstr_concat_cstr(options_text, option_text, cline_arg->allocator);
+                    }
                     cline_arg->allocator.memory_free(option_text);
                     option_text = XTD_NULL;
                     if (help_var_text != XTD_NULL) {

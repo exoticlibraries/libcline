@@ -325,7 +325,7 @@ CESTER_TEST(cline_arg_parse_collect_orphans, inst, {
     cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
     cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "-h<:>--help", "Print this help message", FALSE), XTD_OK);
     cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--user", "Specify the include path", "Student|Teacher|Admin|Executive", FALSE), XTD_OK);
-    cester_assert_int_eq(cline_arg_collect_orphans(cline_arg, TRUE), XTD_OK);
+    cester_assert_int_eq(cline_arg_collect_orphans(cline_arg, "source", TRUE), XTD_OK);
     cester_assert_int_eq(cline_arg_parse(cline_arg, 6, arguments), XTD_OK);
     cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "-h"), TRUE);
     cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--user"), TRUE);
