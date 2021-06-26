@@ -27,11 +27,11 @@ foreach(filepath ${files})
         
         # clang 
         COMMAND clang -I. ${INCLUDE_PATHS} ${filepath} -o ./build/${filenameonly}_clang${FILE_EXT}
-        COMMAND clang++ -I. ${INCLUDE_PATHS} ${filepath} -o ./build/${filenameonly}_clang_cpp${FILE_EXT}
+        #COMMAND clang++ -I. ${INCLUDE_PATHS} ${filepath} -o ./build/${filenameonly}_clang_cpp${FILE_EXT}
     
         # gcc
         COMMAND gcc -I. ${INCLUDE_PATHS} ${filepath} -o ./build/${filenameonly}_gcc${FILE_EXT}
-        COMMAND g++ -I. ${INCLUDE_PATHS} ${filepath} -o ./build/${filenameonly}_gcc_cpp${FILE_EXT}
+        #COMMAND g++ -I. ${INCLUDE_PATHS} ${filepath} -o ./build/${filenameonly}_gcc_cpp${FILE_EXT}
     )
     
     add_custom_command(TARGET cester_test
@@ -43,11 +43,11 @@ foreach(filepath ${files})
         
         # clang
         COMMAND ./build/${filenameonly}_clang${FILE_EXT}
-        COMMAND ./build/${filenameonly}_clang_cpp${FILE_EXT} --cester-output=tap
+        #COMMAND ./build/${filenameonly}_clang_cpp${FILE_EXT} --cester-output=tap
         
         # gcc
         COMMAND ./build/${filenameonly}_gcc${FILE_EXT}
-        COMMAND ./build/${filenameonly}_gcc_cpp${FILE_EXT} --cester-output=junitxml
+        #COMMAND ./build/${filenameonly}_gcc_cpp${FILE_EXT} --cester-output=junitxml
     )
     
     add_dependencies(cester_test ${filenameonly}__)

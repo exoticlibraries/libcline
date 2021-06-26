@@ -34,6 +34,11 @@ extern "C" {
 /*!
 
 */
+#define EXOTIC_CLINE_SECTION_DESCRIPTION "__clinearg__section_description__internal__"
+
+/*!
+
+*/
 struct cline_arg_option_s {
     bool mandatory;
     bool is_prefix;
@@ -47,6 +52,7 @@ struct cline_arg_option_s {
     char **splited_option_keys;
     char **choices;
     char *description;
+    char *epilog;
     char **values;
     char *help_var;
     char *prefix_delimeter;
@@ -279,7 +285,7 @@ static enum x_stat cline_arg_set_option_delimiter(ClineArgs *cline_arg, char *op
 /*!
 
 */
-static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *parent, const char *flag, ClineArgsOption *cli_opt, char **matching_key, bool check_starts_with, bool check_ends_with) {
+static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *section, const char *flag, ClineArgsOption *cli_opt, char **matching_key, bool check_starts_with, bool check_ends_with) {
     size_t index;
     enum x_stat status;
     ClineArgsGroup cli_group;
@@ -288,7 +294,7 @@ static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *parent, 
     if (cline_arg == XTD_NULL || flag == XTD_NULL) {
         return FALSE;
     }
-    status = xhashtable_get(cstr, ClineArgsGroup)(cline_arg->cli_groups, (parent == XTD_NULL || xstring_cstr_is_empty(parent) ? "" : parent), &cli_group);
+    status = xhashtable_get(cstr, ClineArgsGroup)(cline_arg->cli_groups, (section == XTD_NULL || xstring_cstr_is_empty(section) ? "" : section), &cli_group);
     if (status != XTD_OK) {
         return FALSE;
     }
@@ -334,9 +340,9 @@ static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *parent, 
 /*!
 
 */
-static bool cline_arg_has_option(ClineArgs *cline_arg, const char *parent, const char *flag) {
+static bool cline_arg_has_option(ClineArgs *cline_arg, const char *section, const char *flag) {
     ClineArgsOption cli_opt;
-    return cline_arg_find_arg_option(cline_arg, parent, flag, &cli_opt, XTD_NULL, FALSE, FALSE) == TRUE && cli_opt->is_present;
+    return cline_arg_find_arg_option(cline_arg, section, flag, &cli_opt, XTD_NULL, FALSE, FALSE) == TRUE && cli_opt->is_present;
 }
 
 /*!
@@ -350,9 +356,9 @@ static bool cline_arg_has_orphan_values(ClineArgs *cline_arg) {
 /*!
     There is an assumption that the \cline_arg_parse_in_range does it funtion properly
 */
-static size_t cline_arg_get_option_values(ClineArgs *cline_arg, const char *parent, const char *flag, char ***values) {
+static size_t cline_arg_get_option_values(ClineArgs *cline_arg, const char *section, const char *flag, char ***values) {
     ClineArgsOption cli_opt;
-    bool is_present = cline_arg_find_arg_option(cline_arg, parent, flag, &cli_opt, XTD_NULL, FALSE, FALSE) == TRUE && cli_opt->is_present;
+    bool is_present = cline_arg_find_arg_option(cline_arg, section, flag, &cli_opt, XTD_NULL, FALSE, FALSE) == TRUE && cli_opt->is_present;
 
     if (!is_present || cli_opt->values == XTD_NULL) { return 0; }
     if (values != XTD_NULL) {
@@ -369,12 +375,12 @@ static size_t cline_arg_get_option_values(ClineArgs *cline_arg, const char *pare
 /*!
 
 */
-#define cline_arg_get_arg_option(cline_arg, parent, flag, cli_opt) cline_arg_find_arg_option(cline_arg, parent, flag, cli_opt, XTD_NULL, FALSE, FALSE)
+#define cline_arg_get_arg_option(cline_arg, section, flag, cli_opt) cline_arg_find_arg_option(cline_arg, section, flag, cli_opt, XTD_NULL, FALSE, FALSE)
 
 /*!
 
 */
-#define cline_arg_contains_option(cline_arg, parent, option_str) cline_arg_get_arg_option(cline_arg, parent, option_str, XTD_NULL)
+#define cline_arg_contains_option(cline_arg, section, option_str) cline_arg_get_arg_option(cline_arg, section, option_str, XTD_NULL)
 
 /*!
 
@@ -426,7 +432,7 @@ static size_t cline_arg_find_like_arg_options(ClineArgs *cline_arg, const char *
 
 */
 static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg, 
-                                           const char *parent,  
+                                           const char *section,  
                                            const char *option_str, 
                                            const char *choices_str, 
                                            const char *description,
@@ -448,7 +454,7 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
     if (cline_arg == XTD_NULL || option_str == XTD_NULL) {
         return XTD_PARAM_NULL_ERR;
     }
-    if (cline_arg_contains_option(cline_arg, parent, option_str) == TRUE) {
+    if (cline_arg_contains_option(cline_arg, section, option_str) == TRUE) {
         return XTD_DUPLICATE_ERR;
     }
     cline_arg_option = (ClineArgsOption) cline_arg->allocator.memory_calloc(1, sizeof(struct cline_arg_option_s));
@@ -458,6 +464,7 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
     cline_arg_option->splited_option_keys = xstring_cstr_split(option_str, cline_arg->option_delimiter, cline_arg->allocator);
     cline_arg_option->choices = xstring_cstr_split(choices_str, "|", cline_arg->allocator);
     cline_arg_option->description = description;
+    cline_arg_option->epilog = XTD_NULL;
     cline_arg_option->values = default_value;
     cline_arg_option->help_var = help_var;
     cline_arg_option->prefix_delimeter = prefix_delimeter;
@@ -470,7 +477,7 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
     cline_arg_option->found_value_count = 0;
     cline_arg_option->is_present = FALSE;
     cline_arg_option->ignored = ignored;
-    status = xhashtable_get(cstr, ClineArgsGroup)(cline_arg->cli_groups, (parent == XTD_NULL || xstring_cstr_is_empty(parent) ? "" : parent), &cli_group);
+    status = xhashtable_get(cstr, ClineArgsGroup)(cline_arg->cli_groups, (section == XTD_NULL || xstring_cstr_is_empty(section) ? "" : section), &cli_group);
     if (status != XTD_OK) {
         goto cline_arg_add_option_free_after_failure;
     }
@@ -498,7 +505,7 @@ static enum x_stat cline_arg_collect_orphans(ClineArgs *cline_arg, bool collect_
         return XTD_INVALID_PARAMETER;
     }
     status = cline_arg_add_cli_args_option(cline_arg, XTD_NULL, EXOTIC_CLINE_ORPHAN_PARAM_KEY, XTD_NULL, XTD_NULL, 
-                                                        XTD_NULL, "file-format", XTD_NULL, FALSE, FALSE, FALSE, FALSE, FALSE, 0, (sizeof(size_t)-1/2));
+                                                        XTD_NULL, "...", XTD_NULL, FALSE, FALSE, FALSE, FALSE, FALSE, 0, (sizeof(size_t)-1/2));
     if (status != XTD_OK) {
         return status;
     }
@@ -509,38 +516,44 @@ static enum x_stat cline_arg_collect_orphans(ClineArgs *cline_arg, bool collect_
 /*!
 
 */
-#define cline_arg_add_property(cline_arg, parent, option_str, description, help_var, mandatory) \
-    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, TRUE, FALSE, FALSE, FALSE, 1, 1)
+#define cline_arg_add_property(cline_arg, section, option_str, description, help_var, mandatory) \
+    cline_arg_add_cli_args_option(cline_arg, section, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, TRUE, FALSE, FALSE, FALSE, 1, 1)
 
 /*!
 
 */
-#define cline_arg_add_property_suffix(cline_arg, parent, option_str, description, help_var, mandatory) \
-    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, TRUE, FALSE, FALSE, 1, 1)
+#define cline_arg_add_property_suffix(cline_arg, section, option_str, description, help_var, mandatory) \
+    cline_arg_add_cli_args_option(cline_arg, section, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, TRUE, FALSE, FALSE, 1, 1)
 
 /*!
 
 */
-#define cline_arg_add_argument(cline_arg, parent, option_str, description, help_var, mandatory) \
-    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, FALSE, FALSE, FALSE, 1, 1)
+#define cline_arg_add_argument(cline_arg, section, option_str, description, help_var, mandatory) \
+    cline_arg_add_cli_args_option(cline_arg, section, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, FALSE, FALSE, FALSE, 1, 1)
 
 /*!
 
 */
-#define cline_arg_add_option(cline_arg, parent, option_str, description, mandatory) \
-    cline_arg_add_cli_args_option(cline_arg, parent, option_str, XTD_NULL, description, XTD_NULL, XTD_NULL, XTD_NULL, mandatory, FALSE, FALSE, FALSE, FALSE, 0, 1)
+#define cline_arg_add_option(cline_arg, section, option_str, description, mandatory) \
+    cline_arg_add_cli_args_option(cline_arg, section, option_str, XTD_NULL, description, XTD_NULL, XTD_NULL, XTD_NULL, mandatory, FALSE, FALSE, FALSE, FALSE, 0, 1)
 
 /*!
 
 */
-#define cline_arg_add_choice(cline_arg, parent, option_str, description, choice_str, mandatory) \
-    cline_arg_add_cli_args_option(cline_arg, parent, option_str, choice_str, description, XTD_NULL, XTD_NULL, XTD_NULL, mandatory, FALSE, FALSE, FALSE, FALSE, 1, 1)
+#define cline_arg_add_choice(cline_arg, section, option_str, description, choice_str, mandatory) \
+    cline_arg_add_cli_args_option(cline_arg, section, option_str, choice_str, description, XTD_NULL, XTD_NULL, XTD_NULL, mandatory, FALSE, FALSE, FALSE, FALSE, 1, 1)
 
 /*!
 
 */
 #define cline_arg_add_ignored(cline_arg, option_str, is_prefix) \
     cline_arg_add_cli_args_option(cline_arg, XTD_NULL, option_str, XTD_NULL, XTD_NULL, XTD_NULL, XTD_NULL, XTD_NULL, FALSE, is_prefix, FALSE, FALSE, TRUE, 0, 1)
+
+/*!
+
+*/
+#define cline_arg_add_ignored_with_desc(cline_arg, option_str, description, is_prefix) \
+    cline_arg_add_cli_args_option(cline_arg, XTD_NULL, option_str, XTD_NULL, description, XTD_NULL, XTD_NULL, XTD_NULL, FALSE, is_prefix, FALSE, FALSE, TRUE, 0, 1)
 
 /*!
 
@@ -661,6 +674,240 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
 
 */
 #define cline_arg_parse(cline_arg, argc, argv) cline_arg_parse_in_range(cline_arg, 0, argc, argv)
+
+/*!
+
+*/
+char *cline_arg_get_section_description(ClineArgs *cline_arg, const char *section) {
+    ClineArgsOption cli_opt;
+    if (section == XTD_NULL) { return cline_arg->description; }
+    if (!cline_arg_find_arg_option(cline_arg, section, EXOTIC_CLINE_SECTION_DESCRIPTION, &cli_opt, XTD_NULL, FALSE, FALSE)) {
+        return XTD_NULL;
+    }
+    return cli_opt->description;
+}
+
+/*!
+
+*/
+static enum x_stat cline_arg_set_section_description(ClineArgs *cline_arg, const char *section, const char *description) {
+    ClineArgsOption cli_opt;
+    if (section == XTD_NULL) {
+        cline_arg->description = description;
+        return XTD_OK;
+    }
+    if (!cline_arg_find_arg_option(cline_arg, section, EXOTIC_CLINE_SECTION_DESCRIPTION, &cli_opt, XTD_NULL, FALSE, FALSE)) {
+        return cline_arg_add_ignored_with_desc(cline_arg, EXOTIC_CLINE_SECTION_DESCRIPTION, description, FALSE);
+    }
+    cli_opt->description = description;
+    return XTD_OK;
+}
+
+/*!
+
+*/
+char *cline_arg_get_section_epilog(ClineArgs *cline_arg, const char *section) {
+    ClineArgsOption cli_opt;
+    if (section == XTD_NULL) { return cline_arg->epilog; }
+    if (!cline_arg_find_arg_option(cline_arg, section, EXOTIC_CLINE_SECTION_DESCRIPTION, &cli_opt, XTD_NULL, FALSE, FALSE)) {
+        return XTD_NULL;
+    }
+    return cli_opt->description;
+}
+
+/*!
+
+*/
+static enum x_stat cline_arg_set_section_epilog(ClineArgs *cline_arg, const char *section, const char *epilog) {
+    ClineArgsOption cli_opt;
+    enum x_stat status;
+    if (section == XTD_NULL) {
+        cline_arg->epilog = epilog;
+        return XTD_OK;
+    }
+    if (!cline_arg_find_arg_option(cline_arg, section, EXOTIC_CLINE_SECTION_DESCRIPTION, &cli_opt, XTD_NULL, FALSE, FALSE)) {
+        status = cline_arg_add_ignored_with_desc(cline_arg, EXOTIC_CLINE_SECTION_DESCRIPTION, "", FALSE);
+        if (status == XTD_OK && cline_arg_find_arg_option(cline_arg, section, EXOTIC_CLINE_SECTION_DESCRIPTION, &cli_opt, XTD_NULL, FALSE, FALSE) == XTD_OK) {
+            goto cline_arg_set_section_epilog_return;
+        }
+        return status;
+    }
+    cline_arg_set_section_epilog_return:
+        cli_opt->epilog = epilog;
+        return XTD_OK;
+}
+
+/*!
+
+*/
+#define CLINE_ARG_TRANSLATE__INTERNAL__(sentence) (translate_sentence != XTD_NULL ? translate_sentence(sentence) : sentence)
+
+/*!
+
+*/
+#define CLINE_ARG_HELP_OPTION_PRE_SPACE_SIZE 24
+
+/*!
+
+*//* like a milllion memory is not freed in here, CHECK later */
+static enum x_stat cline_arg_section_help(ClineArgs *cline_arg, const char *section, char *(*translate_sentence)(const char *), char **out) {
+    size_t index;
+    size_t option_text_length = 0;
+    char *text;
+    char *help_var_text = XTD_NULL;
+    char *option_text = XTD_NULL;
+    char *usage_text = XTD_NULL;
+    char *options_text = XTD_NULL;
+    char *help_text = XTD_NULL;
+    XIterator *iterator;
+    XIterator *sub_iterator;
+
+    options_text = xstring_cstr_concat_cstr(options_text, "\n", cline_arg->allocator);
+    if (section == XTD_NULL) {
+        if (cline_arg->usage != XTD_NULL) {
+            //xstring_cstr_replace(usage, "${name}", cline_arg->name, cline_arg->allocator)
+            usage_text = xstring_cstr_concat_cstr(usage_text, cline_arg_get_usage(cline_arg), cline_arg->allocator);
+        } else {
+            usage_text = xstring_cstr_concat_cstr(usage_text, CLINE_ARG_TRANSLATE__INTERNAL__("usage"), cline_arg->allocator);
+            usage_text = xstring_cstr_concat_cstr(usage_text, ": ", cline_arg->allocator);
+            usage_text = xstring_cstr_concat_cstr(usage_text, cline_arg_get_name(cline_arg), cline_arg->allocator);
+
+            iterator = XITERATOR_INIT2(xhashtable, cstr, ClineArgsGroup, cline_arg->cli_groups);
+            XFOREACH(const xhashtable_entry(cstr, ClineArgsGroup) *entry, iterator, {
+                sub_iterator = XITERATOR_INIT2(xhashtable, cstr, ClineArgsOption, entry->value->cliopts);
+                XFOREACH(const xhashtable_entry(cstr, ClineArgsOption) *sub_entry, sub_iterator, {
+                    if (sub_entry->value->help_var != XTD_NULL) {
+                        if (!sub_entry->value->is_prefix && !sub_entry->value->is_suffix) {
+                            help_var_text = xstring_cstr_concat_cstr(help_var_text, " ", cline_arg->allocator);
+                        }
+                        help_var_text = xstring_cstr_concat_cstr(help_var_text, "<", cline_arg->allocator);
+                        help_var_text = xstring_cstr_concat_cstr(help_var_text, sub_entry->value->help_var, cline_arg->allocator);
+                        help_var_text = xstring_cstr_concat_cstr(help_var_text, ">", cline_arg->allocator);
+                    }
+                    usage_text = xstring_cstr_concat_cstr(usage_text, " ", cline_arg->allocator);
+                    if (!sub_entry->value->mandatory) {
+                        usage_text = xstring_cstr_concat_cstr(usage_text, "[", cline_arg->allocator);
+                    }
+                    option_text = xstring_cstr_concat_cstr(option_text, "  ", cline_arg->allocator);
+                    if (help_var_text != XTD_NULL && sub_entry->value->is_suffix) {
+                        usage_text = xstring_cstr_concat_cstr(usage_text, help_var_text, cline_arg->allocator);
+                        option_text = xstring_cstr_concat_cstr(option_text, help_var_text, cline_arg->allocator);
+                        cline_arg->allocator.memory_free(help_var_text);
+                        help_var_text = XTD_NULL;
+                    }
+                    usage_text = xstring_cstr_concat_cstr(usage_text, sub_entry->value->splited_option_keys[0], cline_arg->allocator);
+                    option_text = xstring_cstr_concat_cstr(option_text, sub_entry->value->splited_option_keys[0], cline_arg->allocator);
+                    if (help_var_text != XTD_NULL && !sub_entry->value->is_suffix) {
+                        usage_text = xstring_cstr_concat_cstr(usage_text, help_var_text, cline_arg->allocator);
+                        option_text = xstring_cstr_concat_cstr(option_text, help_var_text, cline_arg->allocator);
+                        cline_arg->allocator.memory_free(help_var_text);
+                        help_var_text = XTD_NULL;
+                    }
+                    for (index = 1; sub_entry->value->splited_option_keys[index] != XTD_NULL; index++) {
+                        if (sub_entry->value->help_var != XTD_NULL) {
+                            if (!sub_entry->value->is_prefix && !sub_entry->value->is_suffix) {
+                                help_var_text = xstring_cstr_concat_cstr(help_var_text, " ", cline_arg->allocator);
+                            }
+                            help_var_text = xstring_cstr_concat_cstr(help_var_text, "<", cline_arg->allocator);
+                            help_var_text = xstring_cstr_concat_cstr(help_var_text, sub_entry->value->help_var, cline_arg->allocator);
+                            help_var_text = xstring_cstr_concat_cstr(help_var_text, ">", cline_arg->allocator);
+                        }
+                        usage_text = xstring_cstr_concat_char(usage_text, '|', cline_arg->allocator);
+                        option_text = xstring_cstr_concat_cstr(option_text, ", ", cline_arg->allocator);
+                        if (help_var_text != XTD_NULL && sub_entry->value->is_suffix) {
+                            usage_text = xstring_cstr_concat_cstr(usage_text, help_var_text, cline_arg->allocator);
+                            option_text = xstring_cstr_concat_cstr(option_text, help_var_text, cline_arg->allocator);
+                            cline_arg->allocator.memory_free(help_var_text);
+                            help_var_text = XTD_NULL;
+                        }
+                        usage_text = xstring_cstr_concat_cstr(usage_text, sub_entry->value->splited_option_keys[index], cline_arg->allocator);
+                        option_text = xstring_cstr_concat_cstr(option_text, sub_entry->value->splited_option_keys[index], cline_arg->allocator);
+                        if (help_var_text != XTD_NULL && !sub_entry->value->is_suffix) {
+                            usage_text = xstring_cstr_concat_cstr(usage_text, help_var_text, cline_arg->allocator);
+                            option_text = xstring_cstr_concat_cstr(option_text, help_var_text, cline_arg->allocator);
+                            cline_arg->allocator.memory_free(help_var_text);
+                            help_var_text = XTD_NULL;
+                        }
+                    }
+                    if (sub_entry->value->is_prefix || sub_entry->value->is_suffix || sub_entry->value->max_value_count > 1) {
+                        usage_text = xstring_cstr_concat_cstr(usage_text, " ...", cline_arg->allocator);
+                        option_text = xstring_cstr_concat_cstr(option_text, " ...", cline_arg->allocator);
+                    }
+                    option_text_length = xstring_cstr_length(option_text);
+                    do {
+                        option_text = xstring_cstr_concat_char(option_text, ' ', cline_arg->allocator);
+                    } while (option_text_length++ < CLINE_ARG_HELP_OPTION_PRE_SPACE_SIZE-1);
+                    if (!sub_entry->value->mandatory) {
+                        usage_text = xstring_cstr_concat_char(usage_text, ']', cline_arg->allocator);
+                    }
+                    option_text = xstring_cstr_concat_cstr(option_text, (sub_entry->value->description != XTD_NULL ? sub_entry->value->description : ""), cline_arg->allocator);
+                    option_text = xstring_cstr_concat_char(option_text, '\n', cline_arg->allocator);
+                    options_text = xstring_cstr_concat_cstr(options_text, option_text, cline_arg->allocator);
+                    cline_arg->allocator.memory_free(option_text);
+                    option_text = XTD_NULL;
+                    if (help_var_text != XTD_NULL) {
+                        cline_arg->allocator.memory_free(help_var_text);
+                        help_var_text = XTD_NULL;
+                    }
+                })
+                XITERATOR_DESTROY(sub_iterator);
+            })
+            XITERATOR_DESTROY(iterator);
+        }
+        usage_text = xstring_cstr_concat_cstr(usage_text, "\n\n", cline_arg->allocator);
+    }
+    help_text = xstring_cstr_concat_cstr(help_text, usage_text, cline_arg->allocator);
+    cline_arg->allocator.memory_free(usage_text);
+    text = CLINE_ARG_TRANSLATE__INTERNAL__(cline_arg_get_section_description(cline_arg, section));
+    if (text != XTD_NULL) {
+        help_text = xstring_cstr_concat_cstr(help_text, text, cline_arg->allocator);
+        help_text = xstring_cstr_concat_cstr(help_text, "\n", cline_arg->allocator);
+    }
+    if (option_text_length > 0) {
+        help_text = xstring_cstr_concat_cstr(help_text, options_text, cline_arg->allocator);
+        cline_arg->allocator.memory_free(options_text);
+    }
+    text = CLINE_ARG_TRANSLATE__INTERNAL__(cline_arg_get_section_epilog(cline_arg, section));
+    if (text != XTD_NULL) {
+        help_text = xstring_cstr_concat_cstr(help_text, "\n", cline_arg->allocator);
+        help_text = xstring_cstr_concat_cstr(help_text, text, cline_arg->allocator);
+        help_text = xstring_cstr_concat_cstr(help_text, "\n", cline_arg->allocator);
+    }
+    *out = help_text;
+            
+    return XTD_OK;
+}
+
+/*!
+
+*/
+static enum x_stat cline_arg_help(ClineArgs *cline_arg, char **selected_sections, char *(*translate_sentence)(const char *), char **out) {
+    int index;
+    char *help_text;
+    char *section_help;
+    enum x_stat status;
+
+    status = cline_arg_section_help(cline_arg, XTD_NULL, XTD_NULL, &section_help);
+    if (status != XTD_OK) {
+        return status;
+    }
+    help_text = xstring_cstr_concat_cstr(help_text, section_help, cline_arg->allocator);
+    cline_arg->allocator.memory_free(section_help);
+    if (selected_sections != XTD_NULL) {
+        for (index = 0; selected_sections[index] != XTD_NULL; index++) {
+            status = cline_arg_section_help(cline_arg, selected_sections[index], XTD_NULL, &section_help);
+            if (status != XTD_OK) {
+                return status;
+            }
+            help_text = xstring_cstr_concat_cstr(help_text, section_help, cline_arg->allocator);
+            cline_arg->allocator.memory_free(section_help);
+        }
+    }
+    help_text = xstring_cstr_concat_cstr(help_text, "\n", cline_arg->allocator);
+    *out = help_text;
+
+    return XTD_OK;
+}
 
 #ifdef __cplusplus
 }
