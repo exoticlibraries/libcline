@@ -65,6 +65,23 @@ CESTER_TEST(cline_arg_parse_add_option_basic_option, inst, {
     destroy_cline_arg(cline_arg);
 })
 
+CESTER_TEST(cline_arg_parse_mandatory, inst, {
+    ClineArgs *cline_arg;
+    XAllocator allocator;
+    char *arguments[] = {"-v"};
+
+    init_xallocator(&allocator);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "-h<:>--help", "Print this help message", TRUE), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "-v<:>--version", "Print the version information and exit", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_parse_in_range(cline_arg, 0, 1, arguments), XTD_MISSING_PARAM_ERR);
+
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "-h"), FALSE);
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--version"), TRUE);
+
+    destroy_cline_arg(cline_arg);
+})
+
 CESTER_TEST(cline_arg_parse_add_argument, inst, {
     ClineArgs *cline_arg;
     XAllocator allocator;
@@ -95,18 +112,17 @@ CESTER_TEST(cline_arg_parse_add_argument, inst, {
     destroy_cline_arg(cline_arg);
 })
 
-CESTER_TEST(cline_arg_parse_add_argument_values, inst, {
+CESTER_TEST(cline_arg_parse_add_argument_values_1, inst, {
     char **values;
     ClineArgs *cline_arg;
     XAllocator allocator;
-    char *arguments1[] = {"--source", "test_clineargs_parse.c", "--help"};
-    char *arguments2[] = {"--formats", "txt", "csv", "-h", "--formats", "yml"};
+    char *arguments[] = {"--source", "test_clineargs_parse.c", "--help"};
 
     init_xallocator(&allocator);
     cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK); add_options_to_ignore(cline_arg);
     cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "-h<:>--help", "Print this help message", FALSE), XTD_OK);
     cester_assert_int_eq(cline_arg_add_argument(cline_arg, XTD_NULL, "--source", "The source file", "file", TRUE), XTD_OK);
-    cester_assert_int_eq(cline_arg_parse(cline_arg, 3, arguments1), XTD_OK);
+    cester_assert_int_eq(cline_arg_parse(cline_arg, 3, arguments), XTD_OK);
     cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--source"), TRUE);
     cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--help"), TRUE);
     cester_assert_uint_eq(cline_arg_get_option_values(cline_arg, XTD_NULL, "--help", XTD_NULL), 0);
@@ -114,13 +130,22 @@ CESTER_TEST(cline_arg_parse_add_argument_values, inst, {
     cester_assert_uint_gt(cline_arg_get_option_values(cline_arg, XTD_NULL, "--source", &values), 0);
     cester_assert_ptr_not_equal(values, XTD_NULL);
     cester_assert_str_equal_(values[0], "test_clineargs_parse.c");
-    destroy_cline_arg(cline_arg);
 
-    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK); add_options_to_ignore(cline_arg);
+    destroy_cline_arg(cline_arg);
+})
+
+CESTER_TEST(cline_arg_parse_add_argument_values_2, inst, {
+    char **values;
+    ClineArgs *cline_arg;
+    XAllocator allocator;
+    char *arguments[] = {"--formats", "txt", "csv", "-h", "--formats", "yml"};
+
+    init_xallocator(&allocator);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK); 
     cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "-h<:>--help", "Print this help message", FALSE), XTD_OK);
     cester_assert_int_eq(cline_arg_add_cli_args_option(cline_arg, XTD_NULL, "--formats", XTD_NULL, "Supported file formats", 
                                                         XTD_NULL, "file-format", XTD_NULL, FALSE, FALSE, FALSE, FALSE, FALSE, 1, 3), XTD_OK);
-    cester_assert_int_eq(cline_arg_parse(cline_arg, 6, arguments2), XTD_OK);
+    cester_assert_int_eq(cline_arg_parse(cline_arg, 6, arguments), XTD_OK);
     cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "-h"), TRUE);
     cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--help"), TRUE);
     cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--formats"), TRUE);
@@ -232,47 +257,87 @@ CESTER_TEST(cline_arg_parse_add_property_suffix_file_extension, inst, {
     destroy_cline_arg(cline_arg);
 })
 
-CESTER_TEST(cline_arg_parse_add_choice, inst, {
+CESTER_TEST(cline_arg_parse_add_choice_1, inst, {
     char **values;
-    ClineArgs *cline_arg1;
-    ClineArgs *cline_arg2;
-    ClineArgs *cline_arg3;
+    ClineArgs *cline_arg;
     XAllocator allocator;
-    char *arguments1[] = {"--user", "--door"};
-    char *arguments2[] = {"--user", "Executive", "--door", "SlightlyOpen"};
-    char *arguments3[] = {"--user", "Executive", "--door", "Close"};
+    char *arguments[] = {"--user", "--door"};
 
     init_xallocator(&allocator);
-    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg1, "CliCalc"), XTD_OK);
-    cester_assert_int_eq(cline_arg_add_choice(cline_arg1, XTD_NULL, "--user", "Specify the include path", "Student|Teacher|Admin|Executive", FALSE), XTD_OK);
-    cester_assert_int_eq(cline_arg_add_choice(cline_arg1, XTD_NULL, "--door", "Send option to the assembler", "Open|Close", FALSE), XTD_OK);
-    cester_assert_int_eq(cline_arg_parse(cline_arg1, 2, arguments1), XTD_VALUE_NOT_FOUND_ERR);
-    destroy_cline_arg(cline_arg1);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--user", "Specify the include path", "Student|Teacher|Admin|Executive", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--door", "Send option to the assembler", "Open|Close", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_parse(cline_arg, 2, arguments), XTD_VALUE_NOT_FOUND_ERR);
 
-    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg2, "CliCalc"), XTD_OK);
-    cester_assert_int_eq(cline_arg_add_choice(cline_arg2, XTD_NULL, "--user", "Specify the include path", "Student|Teacher|Admin|Executive", FALSE), XTD_OK);
-    cester_assert_int_eq(cline_arg_add_choice(cline_arg2, XTD_NULL, "--door", "Send option to the assembler", "Open|Close", FALSE), XTD_OK);
-    cester_assert_int_eq(cline_arg_parse(cline_arg2, 4, arguments2), XTD_KEY_NOT_FOUND_ERR);
-    destroy_cline_arg(cline_arg2);
+    destroy_cline_arg(cline_arg);
+})
 
-    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg3, "CliCalc"), XTD_OK);
-    cester_assert_int_eq(cline_arg_add_choice(cline_arg3, XTD_NULL, "-u<:>--user", "Specify the include path", "Student|Teacher|Admin|Executive", FALSE), XTD_OK);
-    cester_assert_int_eq(cline_arg_add_choice(cline_arg3, XTD_NULL, "--door<:>--ilekun", "Send option to the assembler", "Open|Close", FALSE), XTD_OK);
-    cester_assert_int_eq(cline_arg_parse(cline_arg3, 4, arguments3), XTD_OK);
-    cester_assert_uint_eq(cline_arg_has_option(cline_arg3, XTD_NULL, "-h"), FALSE);
-    cester_assert_uint_eq(cline_arg_has_option(cline_arg3, XTD_NULL, "--ilekun"), TRUE);
-    cester_assert_uint_eq(cline_arg_has_option(cline_arg3, XTD_NULL, "--door"), TRUE);
-    cester_assert_uint_eq(cline_arg_has_option(cline_arg3, XTD_NULL, "-u"), TRUE);
-    cester_assert_uint_eq(cline_arg_has_option(cline_arg3, XTD_NULL, "--user"), TRUE);
-    cester_assert_uint_eq(cline_arg_get_option_values(cline_arg3, XTD_NULL, "--help", XTD_NULL), 0);
-    cester_assert_uint_eq(cline_arg_get_option_values(cline_arg3, XTD_NULL, "--door", &values), 1);
+CESTER_TEST(cline_arg_parse_add_choice_2, inst, {
+    char **values;
+    ClineArgs *cline_arg;
+    XAllocator allocator;
+    char *arguments[] = {"--user", "Executive", "--door", "SlightlyOpen"};
+
+    init_xallocator(&allocator);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--user", "Specify the include path", "Student|Teacher|Admin|Executive", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--door", "Send option to the assembler", "Open|Close", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_parse(cline_arg, 4, arguments), XTD_KEY_NOT_FOUND_ERR);
+
+    destroy_cline_arg(cline_arg);
+})
+
+CESTER_TEST(cline_arg_parse_add_choice_3, inst, {
+    char **values;
+    ClineArgs *cline_arg;
+    XAllocator allocator;
+    char *arguments[] = {"--user", "Executive", "--door", "Close"};
+
+    init_xallocator(&allocator);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "-u<:>--user", "Specify the include path", "Student|Teacher|Admin|Executive", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--door<:>--ilekun", "Send option to the assembler", "Open|Close", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_parse(cline_arg, 4, arguments), XTD_OK);
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "-h"), FALSE);
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--ilekun"), TRUE);
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--door"), TRUE);
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "-u"), TRUE);
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--user"), TRUE);
+    cester_assert_uint_eq(cline_arg_has_orphan_values(cline_arg), FALSE);
+    cester_assert_uint_eq(cline_arg_get_option_values(cline_arg, XTD_NULL, "--help", XTD_NULL), 0);
+    cester_assert_uint_eq(cline_arg_get_option_values(cline_arg, XTD_NULL, "--door", &values), 1);
     cester_assert_ptr_not_equal(values, XTD_NULL);
     cester_assert_str_equal_(values[0], "Close");
-    cester_assert_uint_eq(cline_arg_get_option_values(cline_arg3, XTD_NULL, "--user", &values), 1);
+    cester_assert_uint_eq(cline_arg_get_option_values(cline_arg, XTD_NULL, "--user", &values), 1);
     cester_assert_ptr_not_equal(values, XTD_NULL);
     cester_assert_str_equal_(values[0], "Executive");
 
-    destroy_cline_arg(cline_arg3);
+    destroy_cline_arg(cline_arg);
+})
+
+CESTER_TEST(cline_arg_parse_collect_orphans, inst, {
+    char **values;
+    ClineArgs *cline_arg;
+    XAllocator allocator;
+    char *arguments[] = {"--user", "Executive", "cester.h", "test_cline_fe.c", "--help", "test_clineargs_basic.c"};
+
+    init_xallocator(&allocator);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "-h<:>--help", "Print this help message", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_choice(cline_arg, XTD_NULL, "--user", "Specify the include path", "Student|Teacher|Admin|Executive", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_collect_orphans(cline_arg, TRUE), XTD_OK);
+    cester_assert_int_eq(cline_arg_parse(cline_arg, 6, arguments), XTD_OK);
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "-h"), TRUE);
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--user"), TRUE);
+    cester_assert_uint_eq(cline_arg_has_option(cline_arg, XTD_NULL, "--help"), TRUE);
+    cester_assert_uint_eq(cline_arg_has_orphan_values(cline_arg), TRUE);
+    cester_assert_uint_eq(cline_arg_get_orphan_values(cline_arg, &values), 3);
+    cester_assert_ptr_not_equal(values, XTD_NULL);
+    cester_assert_str_equal_(values[0], "cester.h");
+    cester_assert_str_equal_(values[1], "test_cline_fe.c");
+    cester_assert_str_equal_(values[2], "test_clineargs_basic.c");
+
+    destroy_cline_arg(cline_arg);
 })
 
 CESTER_OPTIONS(

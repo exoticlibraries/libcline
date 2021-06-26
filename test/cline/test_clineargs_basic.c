@@ -63,6 +63,19 @@ CESTER_TEST(cline_arg_set_usage, inst, {
     destroy_cline_arg(cline_arg);
 })
 
+CESTER_TEST(cline_arg_collect_orphan, inst, {
+    ClineArgs *cline_arg;
+    XAllocator allocator;
+
+    init_xallocator(&allocator);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
+    cester_assert_uint_eq(cline_arg_is_collecting_orphans(cline_arg), FALSE);
+    cester_assert_int_eq(cline_arg_collect_orphans(cline_arg, TRUE), XTD_OK);
+    cester_assert_uint_eq(cline_arg_is_collecting_orphans(cline_arg), TRUE);
+    
+    destroy_cline_arg(cline_arg);
+})
+
 CESTER_TEST(cline_arg_add_option, inst, {
     ClineArgs *cline_arg;
     XAllocator allocator;
@@ -271,7 +284,7 @@ CESTER_TEST(cline_arg_find_like_arg_options, inst, {
     ClineArgs *cline_arg;
     XAllocator allocator;
     const int max_similar_count = 4;
-    char *similar_options[max_similar_count];
+    char *similar_options[4];
 
     init_xallocator(&allocator);
     cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
