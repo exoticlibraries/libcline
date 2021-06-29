@@ -223,6 +223,23 @@ CESTER_TEST(cline_arg_add_property, inst, {
     destroy_cline_arg(cline_arg);
 })
 
+CESTER_TEST(cline_arg_add_assignment_property, inst, {
+    ClineArgs *cline_arg;
+    XAllocator allocator;
+    ClineArgsOption cline_arg_option;
+
+    init_xallocator(&allocator);
+    cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_assignment_property(cline_arg, XTD_NULL, "-I<:>/I", "Specify the include path", "include_path", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_add_assignment_property(cline_arg, XTD_NULL, "-X<:>/X", "Send option to the assembler", "option", FALSE), XTD_OK);
+    cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "-I", &cline_arg_option), TRUE);
+    cester_assert_int_eq(cline_arg_option->is_prefix, TRUE);
+    cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "/X", &cline_arg_option), TRUE);
+    cester_assert_int_eq(cline_arg_option->is_prefix, TRUE);
+
+    destroy_cline_arg(cline_arg);
+})
+
 CESTER_TEST(cline_arg_add_property_suffix, inst, {
     ClineArgs *cline_arg;
     XAllocator allocator;

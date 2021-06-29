@@ -522,6 +522,12 @@ static enum x_stat cline_arg_collect_orphans(ClineArgs *cline_arg, const char *h
 /*!
 
 */
+#define cline_arg_add_assignment_property(cline_arg, section, option_str, description, help_var, mandatory) \
+    cline_arg_add_cli_args_option(cline_arg, section, option_str, XTD_NULL, description, XTD_NULL, help_var, "=", mandatory, TRUE, FALSE, FALSE, FALSE, 1, 1)
+
+/*!
+
+*/
 #define cline_arg_add_property_suffix(cline_arg, section, option_str, description, help_var, mandatory) \
     cline_arg_add_cli_args_option(cline_arg, section, option_str, XTD_NULL, description, XTD_NULL, help_var, XTD_NULL, mandatory, FALSE, TRUE, FALSE, FALSE, 1, 1)
 
@@ -567,6 +573,7 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
     size_t index_cache;
     size_t argument_length;
     size_t value_count_index;
+    size_t prefix_delimiter_length;
     size_t matching_value_length;
     char *matching_value;
     char **values_expander;
@@ -635,12 +642,13 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
                 }
                 cline_arg_option->values = values_expander;
             }
-            if (cline_arg_option->is_prefix || cline_arg_option->is_suffix) {
+            if (cline_arg_option->is_prefix || cline_arg_option->is_suffix) { /* checkback ent5ering when not suppose to */
+                prefix_delimiter_length = xstring_cstr_length(cline_arg_option->prefix_delimeter);
                 char *suffix_value = (char *) cline_arg->allocator.memory_calloc(argument_length-matching_value_length, sizeof(char));
                 if (cline_arg_option->is_prefix) {
-                    status = xstring_cstr_sub_string(argv[index], matching_value_length, suffix_value);
+                    status = xstring_cstr_sub_string(argv[index], matching_value_length+prefix_delimiter_length, suffix_value);
                 } else {
-                    status = xstring_cstr_sub_string_in_range(argv[index], 0, argument_length-matching_value_length, suffix_value);
+                    status = xstring_cstr_sub_string_in_range(argv[index], 0, argument_length-matching_value_length-prefix_delimiter_length, suffix_value);
                 }
                 if (status != XTD_OK) {
                     cline_arg->allocator.memory_free(cline_arg_option->values);
