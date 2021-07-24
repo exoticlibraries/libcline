@@ -63,7 +63,7 @@ extern "C" {
 /*!
 
 */
-void cline_platform_printnl_if()
+static void cline_platform_printnl_if()
 {
     #ifndef _WIN32
         printf("\n");
@@ -104,7 +104,7 @@ static unsigned already_change_mode = 0;
 /*!
 
 */
-char *cline_ansi_encoder(const char *file_name, const int line_number, const char ansi_code_terminator, const int argscount, ...)
+static char *cline_ansi_encoder(const char *file_name, const int line_number, const char ansi_code_terminator, const int argscount, ...)
 {
     va_list ap;
     const char *p;
