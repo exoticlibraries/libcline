@@ -21,14 +21,26 @@ extern "C" {
 #include "cline_common.h"
 #include <exotic/metaref.h>
 
+/* LIBXTD FILLER */
+#ifndef xpair
+#define xpair xhashtable_entry
+#endif
+
 /*!
 
 */
 #define CLINE_XTD_PRINTER_SELECT_QUOTE(value) _Generic(value,\
+		char: "'",\
 		char *: "\"",\
 		default: ""\
 	)
 
+/*!
+
+*/
+#define CLINE_XTD_PRINTER_FPRINT_VALUE(stream, value) fprintf(stream, CLINE_XTD_PRINTER_SELECT_QUOTE(value));\
+	fprintf(stream, METAREF_GENERIC_FORMAT_SPECIFIER(value), value);\
+	fprintf(stream, CLINE_XTD_PRINTER_SELECT_QUOTE(value));\
 
 /*!
 
@@ -36,10 +48,20 @@ extern "C" {
 #define CLINE_XPRINT_XTD_CONTAINER(container_type, stream, type, container, var_suffix) XIterator *iterator##var_suffix = XITERATOR_INIT(container_type, type, container);\
 	fprintf(stream, "["); size_t size##var_suffix = container_type##_size(container);\
 	XFOREACH_INDEX(size_t index##var_suffix, type value##var_suffix, iterator##var_suffix, {\
-		fprintf(stream, CLINE_XTD_PRINTER_SELECT_QUOTE(value##var_suffix));\
-		fprintf(stream, METAREF_GENERIC_FORMAT_SPECIFIER(value##var_suffix), value##var_suffix);\
-		fprintf(stream, CLINE_XTD_PRINTER_SELECT_QUOTE(value##var_suffix)); if (index##var_suffix < size##var_suffix-1) fprintf(stream, ", ");\
+		CLINE_XTD_PRINTER_FPRINT_VALUE(stream, value##var_suffix); if (index##var_suffix < size##var_suffix-1) fprintf(stream, ", ");\
 	}); fprintf(stream, "]"); XITERATOR_DESTROY(iterator##var_suffix);
+
+
+/*!
+
+*/
+#define CLINE_XPRINT_XTD_CONTAINER_PAIR(container_type, stream, type1, type2, container, var_suffix) \
+	XIterator *iterator##var_suffix = XITERATOR_INIT2(container_type, type1, type2, container);\
+	fprintf(stream, "{"); size_t size##var_suffix = container_type##_size(container);\
+	XFOREACH_INDEX(size_t index##var_suffix, const xpair(type1, type2) *value##var_suffix, iterator##var_suffix, {\
+		CLINE_XTD_PRINTER_FPRINT_VALUE(stream, value##var_suffix->key); fprintf(stream, ": ");\
+		CLINE_XTD_PRINTER_FPRINT_VALUE(stream, value##var_suffix->value); if (index##var_suffix < size##var_suffix-1) fprintf(stream, ", ");\
+	}); fprintf(stream, "}"); XITERATOR_DESTROY(iterator##var_suffix);
 
 /*!
 
@@ -89,12 +111,28 @@ extern "C" {
 /*!
 
 */
+#define CLINE_XPRINT_XHASHTABLE(stream, type1, type2, container) CLINE_XPRINT_XTD_CONTAINER_PAIR(xhashtable, stream, type1, type2, container, __LINE__)
+
+/*!
+
+*/
 #define CLINE_XPRINT_XTD_CONTAINER_CUSTOM(container_type, stream, type, container, value_formatter, var_suffix) XIterator *iterator##var_suffix = XITERATOR_INIT(container_type, type, container);\
 	fprintf(stream, "["); size_t size##var_suffix = container_type##_size(container);\
 	XFOREACH_INDEX(size_t index##var_suffix, type value##var_suffix, iterator##var_suffix, {\
 		fprintf(stream, value_formatter(value##var_suffix));\
 		if (index##var_suffix < size##var_suffix-1) fprintf(stream, ", ");\
 	}); fprintf(stream, "]"); XITERATOR_DESTROY(iterator##var_suffix);
+
+/*!
+
+*/
+#define CLINE_XPRINT_XTD_CONTAINER_CUSTOM_PAIR(container_type, stream, type1, type2, container, key_formatter, value_formatter, var_suffix)\
+	XIterator *iterator##var_suffix = XITERATOR_INIT2(container_type, type1, type2, container);\
+	fprintf(stream, "{"); size_t size##var_suffix = container_type##_size(container);\
+	XFOREACH_INDEX(size_t index##var_suffix, const xpair(type1, type2) *value##var_suffix, iterator##var_suffix, {\
+		fprintf(stream, key_formatter(value##var_suffix->key)); fprintf(stream, ": ");\
+		fprintf(stream, value_formatter(value##var_suffix->value)); if (index##var_suffix < size##var_suffix-1) fprintf(stream, ", ");\
+	}); fprintf(stream, "}"); XITERATOR_DESTROY(iterator##var_suffix);
 
 
 /*!
@@ -140,7 +178,12 @@ extern "C" {
 /*!
 
 */
-#define CLINE_XPRINT_XUNORDERED_SET_CUSTOM(stream, type, container, value_formatter) CLINE_XPRINT_XTD_CONTAINER_CUSTOM(xunorderes_set, stream, type, container, value_formatter, __LINE__)
+#define CLINE_XPRINT_XUNORDERED_SET_CUSTOM_PAIR(stream, type, container, value_formatter) CLINE_XPRINT_XTD_CONTAINER_CUSTOM(xunordered_set, stream, type, container, value_formatter, __LINE__)
+
+/*!
+
+*/
+#define CLINE_XPRINT_XHASHTABLE_CUSTOM(stream, type1, type2, container, key_formatter, value_formatter) CLINE_XPRINT_XTD_CONTAINER_CUSTOM_PAIR(xhashtable, stream, type1, type2, container, key_formatter, value_formatter, __LINE__)
 
 
 #ifdef __cplusplus
