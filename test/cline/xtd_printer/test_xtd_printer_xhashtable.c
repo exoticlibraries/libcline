@@ -1,4 +1,4 @@
-/*!gcc {0} -I. -I../../../include/ -o out -Wno-int-conversion; ./out */
+/*!clang {0} -I. -I../../../include/ -o out -Wno-int-conversion; ./out */
 
 #include <exotic/cester.h>
 #include <exotic/xtd/xstring.h>

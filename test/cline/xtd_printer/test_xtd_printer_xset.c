@@ -124,12 +124,21 @@ CESTER_TEST(print_struct, _, {
 	
 	CESTER_CAPTURE_STDOUT();
 	CLINE_XPRINT_XTD_CONTAINER_CUSTOM(xset, stdout, User_ptr, users, user_to_string, SUFFIX_6251425454);
-	cester_assert_stdout_stream_content_equal("[{Name=thecarisma, Email=test@user.com}, {Name=eccntriity, Email=the_eccen@user.com}, {Name=vazrak, Email=vazrak@user.com}]");
+	cester_assert_stdout_stream_content_contain("{Name=thecarisma, Email=test@user.com}");
+	cester_assert_stdout_stream_content_contain("{Name=eccntriity, Email=the_eccen@user.com}");
+	cester_assert_stdout_stream_content_contain("{Name=vazrak, Email=vazrak@user.com}");
+	cester_assert_stdout_stream_content_contain("[");
+	cester_assert_stdout_stream_content_contain(", {Name=");
+	cester_assert_stdout_stream_content_contain("user.com}]");
 
 	CESTER_RESET_STDOUT();
     cester_assert_uint_eq(xset_remove_at(User_ptr)(users, 1, XTD_NULL), XTD_OK);
 	CLINE_XPRINT_XSET_CUSTOM(stdout, User_ptr, users, user_to_string);
-	cester_assert_stdout_stream_content_equal("[{Name=thecarisma, Email=test@user.com}, {Name=vazrak, Email=vazrak@user.com}]");
+	/*cester_assert_stdout_stream_content_contain("{Name=thecarisma, Email=test@user.com}");*/
+	cester_assert_stdout_stream_content_contain("{Name=vazrak, Email=vazrak@user.com}");
+	cester_assert_stdout_stream_content_contain("@user.com}]");
+	cester_assert_stdout_stream_content_contain("[{Name=");
+	cester_assert_stdout_stream_content_contain("@user.com}, ");
 
 	CESTER_RESET_STDOUT();
     cester_assert_uint_eq(xset_remove_at(User_ptr)(users, 0, XTD_NULL), XTD_OK);

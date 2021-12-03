@@ -1,7 +1,7 @@
 
 /*!
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
-    \author Adewale Azeez <azeezadewale98@gmail.com>
+    \author Adewale Azeez <iamthecarisma@gmail.com>
     \date 11 February 2021
     \file cliarg.h
 
@@ -46,9 +46,11 @@ struct cline_arg_option_s {
     bool case_sensitive;
     bool is_present;
     bool ignored;
+    size_t choices_size;
     size_t min_value_count;
     size_t max_value_count;
     size_t found_value_count;              /*!< The number of the value gotten from the augument, also equivalent to the size of cline_arg_option_s::values */
+    size_t splited_option_keys_size;
     char **splited_option_keys;
     char **choices;
     char *description;
@@ -174,10 +176,10 @@ static void destroy_cline_arg(ClineArgs *cline_arg) {
         sub_iterator = XITERATOR_INIT2(xhashtable, cstr, ClineArgsOption, entry->value->cliopts);
         XFOREACH(const xhashtable_entry(cstr, ClineArgsOption) *sub_entry, sub_iterator, {
             if (sub_entry->value->splited_option_keys != XTD_NULL) {
-                xfreep2p(cline_arg->allocator, sub_entry->value->splited_option_keys);
+                xfreep2p_wl(cline_arg->allocator, sub_entry->value->splited_option_keys, sub_entry->value->splited_option_keys_size);
             }
             if (sub_entry->value->choices != XTD_NULL) {
-                xfreep2p(cline_arg->allocator, sub_entry->value->choices);
+                xfreep2p_wl(cline_arg->allocator, sub_entry->value->choices, sub_entry->value->choices_size);
             }
             if (sub_entry->value->values != XTD_NULL) {
                 cline_arg->allocator.memory_free(sub_entry->value->values);
@@ -314,7 +316,8 @@ static bool cline_arg_find_arg_option(ClineArgs *cline_arg, const char *section,
                 }
                 goto cline_arg_find_arg_option_return;
         }
-        for (index = 0; entry->value->splited_option_keys[index] != XTD_NULL; index++) {
+        for (index = 0; index < entry->value->splited_option_keys_size; index++) {
+			/*printf("Value::%s::%s::\n", entry->key, entry->value->splited_option_keys[index]);*/
             if (xstring_cstr_equals(entry->value->splited_option_keys[index], flag) || 
                 ((entry->value->is_prefix || check_starts_with) && xstring_cstr_starts_with(flag, entry->value->splited_option_keys[index])) || 
                 ((entry->value->is_suffix || check_ends_with) && xstring_cstr_ends_with(flag, entry->value->splited_option_keys[index]))) {
@@ -461,8 +464,8 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
     if (!cline_arg_option) {
         return XTD_ALLOC_ERR;
     }
-    cline_arg_option->splited_option_keys = xstring_cstr_split(cline_arg->allocator, (char *) option_str, cline_arg->option_delimiter);
-    cline_arg_option->choices = xstring_cstr_split(cline_arg->allocator, (char *) choices_str, "|");
+    cline_arg_option->splited_option_keys_size = xstring_cstr_split(cline_arg->allocator, (char *) option_str, cline_arg->option_delimiter, &cline_arg_option->splited_option_keys);
+    cline_arg_option->choices_size = xstring_cstr_split(cline_arg->allocator, (char *) choices_str, "|", &cline_arg_option->choices);
     cline_arg_option->description = description;
     cline_arg_option->epilog = XTD_NULL;
     cline_arg_option->values = default_value;
@@ -491,7 +494,8 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
 
     return XTD_OK;
     cline_arg_add_option_free_after_failure:
-        xfreep2p(cline_arg->allocator, cline_arg_option->splited_option_keys);
+        xfreep2p_wl(cline_arg->allocator, cline_arg_option->splited_option_keys, cline_arg_option->splited_option_keys_size);
+        xfreep2p_wl(cline_arg->allocator, cline_arg_option->choices, cline_arg_option->choices_size);
         cline_arg->allocator.memory_free(cline_arg_option);
         return XTD_ERR;
 }
@@ -613,7 +617,7 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
                 }
                 if (cline_arg_option->choices != XTD_NULL) {
                     is_true = FALSE;
-                    for (sub_index = 0; cline_arg_option->choices[sub_index] != XTD_NULL; sub_index++) {
+                    for (sub_index = 0; sub_index < cline_arg_option->choices_size; sub_index++) {
                         if (xstring_cstr_equals(cline_arg_option->choices[sub_index], val)) {
                             is_true = TRUE;
                             break;
@@ -791,7 +795,7 @@ static enum x_stat cline_arg_section_help(ClineArgs *cline_arg, const char *sect
                 sub_iterator = XITERATOR_INIT2(xhashtable, cstr, ClineArgsOption, entry->value->cliopts);
                 XFOREACH(const xhashtable_entry(cstr, ClineArgsOption) *sub_entry, sub_iterator, {
                     if (sub_entry->value->help_var != XTD_NULL) {
-                        if (sub_entry->value->min_value_count > 0) {
+                        if (sub_entry->value->min_value_count > 0 && !sub_entry->value->is_prefix && !sub_entry->value->is_suffix) {
                             help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, (sub_entry->value->prefix_delimeter != XTD_NULL ? sub_entry->value->prefix_delimeter : " "));
                         }
                         help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, "<");
@@ -822,9 +826,9 @@ static enum x_stat cline_arg_section_help(ClineArgs *cline_arg, const char *sect
                         cline_arg->allocator.memory_free(help_var_text);
                         help_var_text = XTD_NULL;
                     }
-                    for (index = 1; sub_entry->value->splited_option_keys[index] != XTD_NULL; index++) {
+                    for (index = 1; index < sub_entry->value->splited_option_keys_size; index++) {
                         if (sub_entry->value->help_var != XTD_NULL) {
-                            if (sub_entry->value->min_value_count > 0) {
+                            if (sub_entry->value->min_value_count > 0 && !sub_entry->value->is_prefix && !sub_entry->value->is_suffix) {
                                 help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, (sub_entry->value->prefix_delimeter != XTD_NULL ? sub_entry->value->prefix_delimeter : " "));
                             }
                             help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, "<");

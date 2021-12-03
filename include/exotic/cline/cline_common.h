@@ -1,7 +1,7 @@
 
 /*!
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
-    \author Adewale Azeez <azeezadewale98@gmail.com>
+    \author Adewale Azeez <iamthecarisma@gmail.com>
     \date 19 February 2021
     \file cline_common.h
 

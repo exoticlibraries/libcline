@@ -1,7 +1,7 @@
 
 /*!
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
-    \author Adewale Azeez <azeezadewale98@gmail.com>
+    \author Adewale Azeez <iamthecarisma@gmail.com>
     \date 07 October 2021
     \file xtd_printers.h
 
@@ -59,8 +59,8 @@ extern "C" {
 	XIterator *iterator##var_suffix = XITERATOR_INIT2(container_type, type1, type2, container);\
 	fprintf(stream, "{"); size_t size##var_suffix = container_type##_size(container);\
 	XFOREACH_INDEX(size_t index##var_suffix, const xpair(type1, type2) *value##var_suffix, iterator##var_suffix, {\
-		CLINE_XTD_PRINTER_FPRINT_VALUE(stream, value##var_suffix->key); fprintf(stream, ": ");\
-		CLINE_XTD_PRINTER_FPRINT_VALUE(stream, value##var_suffix->value); if (index##var_suffix < size##var_suffix-1) fprintf(stream, ", ");\
+		CLINE_XTD_PRINTER_FPRINT_VALUE(stream, (type1) value##var_suffix->key); fprintf(stream, ": ");\
+		CLINE_XTD_PRINTER_FPRINT_VALUE(stream, (type2) value##var_suffix->value); if (index##var_suffix < size##var_suffix-1) fprintf(stream, ", ");\
 	}); fprintf(stream, "}"); XITERATOR_DESTROY(iterator##var_suffix);
 
 /*!
@@ -178,7 +178,7 @@ extern "C" {
 /*!
 
 */
-#define CLINE_XPRINT_XUNORDERED_SET_CUSTOM_PAIR(stream, type, container, value_formatter) CLINE_XPRINT_XTD_CONTAINER_CUSTOM(xunordered_set, stream, type, container, value_formatter, __LINE__)
+#define CLINE_XPRINT_XUNORDERED_SET_CUSTOM(stream, type, container, value_formatter) CLINE_XPRINT_XTD_CONTAINER_CUSTOM(xunordered_set, stream, type, container, value_formatter, __LINE__)
 
 /*!
 

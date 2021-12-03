@@ -4,6 +4,7 @@
 #include <stdlib.h>
 #include <exotic/xtd/xvector.h>
 #include <exotic/metaref.h>
+#include <exotic/cline/xtd_printers.h>
 
 #define EXECUTE_OR_FAIL(func) if (func != XTD_OK) goto fails;
 typedef char* str;
@@ -21,7 +22,7 @@ int main() {
 	EXECUTE_OR_FAIL(xvector_add(str)(numbers, "2"))
 	EXECUTE_OR_FAIL(xvector_add(str)(numbers, "3"))
 	EXECUTE_OR_FAIL(xvector_add(str)(numbers, "4"))
-	CLINE_PRINT_XVECTOR(stdout, str, numbers);
+	CLINE_XPRINT_XVECTOR(stdout, str, numbers);
 
 	xvector_destroy(numbers);
 	return 0;
