@@ -795,9 +795,11 @@ static enum x_stat cline_arg_section_help(ClineArgs *cline_arg, const char *sect
                 sub_iterator = XITERATOR_INIT2(xhashtable, cstr, ClineArgsOption, entry->value->cliopts);
                 XFOREACH(const xhashtable_entry(cstr, ClineArgsOption) *sub_entry, sub_iterator, {
                     if (sub_entry->value->help_var != XTD_NULL) {
-                        if (sub_entry->value->min_value_count > 0 && !sub_entry->value->is_prefix && !sub_entry->value->is_suffix) {
-                            help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, (sub_entry->value->prefix_delimeter != XTD_NULL ? sub_entry->value->prefix_delimeter : " "));
-                        }
+                        if (sub_entry->value->min_value_count > 0 && sub_entry->value->prefix_delimeter != XTD_NULL) {
+                            help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, sub_entry->value->prefix_delimeter);
+                        } else if (!sub_entry->value->is_prefix && !sub_entry->value->is_suffix) {
+                            help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, " ");
+						}
                         help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, "<");
                         help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, sub_entry->value->help_var);
                         help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, ">");
@@ -828,9 +830,11 @@ static enum x_stat cline_arg_section_help(ClineArgs *cline_arg, const char *sect
                     }
                     for (index = 1; index < sub_entry->value->splited_option_keys_size; index++) {
                         if (sub_entry->value->help_var != XTD_NULL) {
-                            if (sub_entry->value->min_value_count > 0 && !sub_entry->value->is_prefix && !sub_entry->value->is_suffix) {
-                                help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, (sub_entry->value->prefix_delimeter != XTD_NULL ? sub_entry->value->prefix_delimeter : " "));
-                            }
+                            if (sub_entry->value->min_value_count > 0 && sub_entry->value->prefix_delimeter != XTD_NULL) {
+                                help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, sub_entry->value->prefix_delimeter);
+                            } else if (!sub_entry->value->is_prefix && !sub_entry->value->is_suffix) {
+                                help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, " ");
+							}
                             help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, "<");
                             help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, sub_entry->value->help_var);
                             help_var_text = xstring_cstr_concat_cstr(cline_arg->allocator, help_var_text, ">");
