@@ -1,7 +1,7 @@
 
 /*!
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
-    \author Adewale Azeez <azeezadewale98@gmail.com>
+    \author Adewale Azeez <iamthecarisma@gmail.com>
     \date 19 February 2021
     \file cline_common.h
 
@@ -15,8 +15,13 @@
 extern "C" {
 #endif
 
+#include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <exotic/xtd/xcommon.h>
+#include <exotic/xtd/util/xcrypto.h>
+#include <exotic/xtd/container/xstring.h>
+#include <exotic/xtd/container/xhashtable.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -63,7 +68,7 @@ extern "C" {
 /*!
 
 */
-void cline_platform_printnl_if()
+static void cline_platform_printnl_if()
 {
     #ifndef _WIN32
         printf("\n");
@@ -74,7 +79,7 @@ void cline_platform_printnl_if()
     printf("libcline FATAL_ERROR -> %s:%d ", file_name, line_number);\
     printf(__VA_ARGS__); \
     cline_platform_printnl_if(); \
-    exit(EXIT_FAILURE);\
+    exit(1);\
 }
 
 #ifdef _WIN32
@@ -104,7 +109,7 @@ static unsigned already_change_mode = 0;
 /*!
 
 */
-char *cline_ansi_encoder(const char *file_name, const int line_number, const char ansi_code_terminator, const int argscount, ...)
+static char *cline_ansi_encoder(const char *file_name, const int line_number, const char ansi_code_terminator, const int argscount, ...)
 {
     va_list ap;
     const char *p;

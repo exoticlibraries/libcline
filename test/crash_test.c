@@ -1,6 +1,35 @@
-/*!gcc {0} -I. -I../include/ -o out; ./out --cester-verbose */
+/*!gcc {0} -I. -I../include/ -o out -Wno-int-conversion; ./out --cester-verbose */
 
 #include <stdio.h>
+#include <stdlib.h>
+#include <exotic/xtd/xvector.h>
+#include <exotic/metaref.h>
+#include <exotic/cline/xtd_printers.h>
+
+#define EXECUTE_OR_FAIL(func) if (func != XTD_OK) goto fails;
+typedef char* str;
+SETUP_XVECTOR_FOR(str)
+
+void to_string(int number) {
+	
+}
+
+int main() {
+	xvector(str) *numbers;
+
+	EXECUTE_OR_FAIL(xvector_new(str)(&numbers))
+	EXECUTE_OR_FAIL(xvector_add(str)(numbers, "1"))
+	EXECUTE_OR_FAIL(xvector_add(str)(numbers, "2"))
+	EXECUTE_OR_FAIL(xvector_add(str)(numbers, "3"))
+	EXECUTE_OR_FAIL(xvector_add(str)(numbers, "4"))
+	CLINE_XPRINT_XVECTOR(stdout, str, numbers);
+
+	xvector_destroy(numbers);
+	return 0;
+	fails:
+		printf("Error");
+		return 1;
+}
 
 void spaces(int count)
 {
@@ -10,7 +39,7 @@ void spaces(int count)
         putchar(' ');
 }
 
-int main()
+int main1()
 {
     int x;
 

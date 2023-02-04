@@ -1,7 +1,7 @@
 
 /*!
     \copyright MIT License Copyright (c) 2021, Adewale Azeez 
-    \author Adewale Azeez <azeezadewale98@gmail.com>
+    \author Adewale Azeez <iamthecarisma@gmail.com>
     \date 12 February 2021
     \file font_effect.h
 
@@ -146,7 +146,7 @@ extern "C" {
     this can be used to quick disable the effects without having to 
     delete the other font effect options. 
 */
-const char *cline_fe_str_with_end_fe(const char *file_name, const int line_number, const char *text, const char *fe, const char *end_fe)
+static const char *cline_fe_str_with_end_fe(const char *file_name, const int line_number, const char *text, const char *fe, const char *end_fe)
 {
     int fe_length = strlen(fe);
     int concatenated_length = strlen(text) + fe_length + (fe_length > 0 ? strlen(end_fe) : 0);
