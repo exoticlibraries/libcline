@@ -1,8 +1,8 @@
 /*!gcc {0} -I. -I../../../include/ -o out -Wno-int-conversion; ./out */
 
 #include <exotic/cester.h>
-#include <exotic/xtd/xstring.h>
-#include <exotic/xtd/xset.h>
+#include <exotic/xtd/container/xstring.h>
+#include <exotic/xtd/container/xset.h>
 #include <exotic/cline/xtd_printers.h>
 
 CESTER_BODY(

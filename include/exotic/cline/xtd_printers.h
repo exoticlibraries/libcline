@@ -29,6 +29,25 @@ extern "C" {
 /*!
 
 */
+#define CLINE_XTD_GENERIC_FORMAT_SPECIFIER(value) _Generic(value,\
+		char: "%c",\
+		unsigned char: "%c",\
+		short: "%hi",\
+		unsigned short: "%hu",\
+		int: "%i",\
+		unsigned int: "%u",\
+		long: "%ld",\
+		unsigned long: "%ld",\
+		float: "%f",\
+		double: "%lf",\
+		long double: "%Lf",\
+		char *: "%s",\
+		default: "%p"\
+	)
+
+/*!
+
+*/
 #define CLINE_XTD_PRINTER_SELECT_QUOTE(value) _Generic(value,\
 		char: "'",\
 		char *: "\"",\
@@ -39,7 +58,7 @@ extern "C" {
 
 */
 #define CLINE_XTD_PRINTER_FPRINT_VALUE(stream, value) fprintf(stream, CLINE_XTD_PRINTER_SELECT_QUOTE(value));\
-	fprintf(stream, METAREF_GENERIC_FORMAT_SPECIFIER(value), value);\
+	fprintf(stream, CLINE_XTD_GENERIC_FORMAT_SPECIFIER(value), value);\
 	fprintf(stream, CLINE_XTD_PRINTER_SELECT_QUOTE(value));\
 
 /*!

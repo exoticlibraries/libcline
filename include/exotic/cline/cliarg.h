@@ -15,10 +15,7 @@
 extern "C" {
 #endif
 
-#include <exotic/xtd/xcommon.h>
-#include <exotic/xtd/xcrypto.h>
-#include <exotic/xtd/xhashtable.h>
-#include <exotic/xtd/xstring.h>
+#include "cline_common.h"
 /*#include <exotic/xtd/helpers/basic_vector_types.h>*/
 
 /*TODO remove and move to xtd*/
@@ -204,7 +201,7 @@ static void destroy_cline_arg(ClineArgs *cline_arg) {
 */
 static enum x_stat cline_arg_set_name(ClineArgs *cline_arg, char *name) {
     if (!cline_arg || !name) {
-        return XTD_INVALID_PARAMETER;
+        return XTD_INVALID_PARAMETER_ERR;
     }
     cline_arg->name = name;
     return XTD_OK;
@@ -215,7 +212,7 @@ static enum x_stat cline_arg_set_name(ClineArgs *cline_arg, char *name) {
 */
 static enum x_stat cline_arg_set_description(ClineArgs *cline_arg, char *description) {
     if (!cline_arg || !description) {
-        return XTD_INVALID_PARAMETER;
+        return XTD_INVALID_PARAMETER_ERR;
     }
     cline_arg->description = description;
     return XTD_OK;
@@ -226,7 +223,7 @@ static enum x_stat cline_arg_set_description(ClineArgs *cline_arg, char *descrip
 */
 static enum x_stat cline_arg_set_epilog(ClineArgs *cline_arg, char *epilog) {
     if (!cline_arg || !epilog) {
-        return XTD_INVALID_PARAMETER;
+        return XTD_INVALID_PARAMETER_ERR;
     }
     cline_arg->epilog = epilog;
     return XTD_OK;
@@ -237,7 +234,7 @@ static enum x_stat cline_arg_set_epilog(ClineArgs *cline_arg, char *epilog) {
 */
 static enum x_stat cline_arg_set_usage(ClineArgs *cline_arg, char *usage) {
     if (!cline_arg || !usage) {
-        return XTD_INVALID_PARAMETER;
+        return XTD_INVALID_PARAMETER_ERR;
     }
     cline_arg->usage = usage;
     return XTD_OK;
@@ -248,7 +245,7 @@ static enum x_stat cline_arg_set_usage(ClineArgs *cline_arg, char *usage) {
 */
 static enum x_stat cline_arg_set_option_delimiter(ClineArgs *cline_arg, char *option_delimiter) {
     if (!cline_arg || !option_delimiter) {
-        return XTD_INVALID_PARAMETER;
+        return XTD_INVALID_PARAMETER_ERR;
     }
     cline_arg->option_delimiter = option_delimiter;
     return XTD_OK;
@@ -506,7 +503,7 @@ static enum x_stat cline_arg_add_cli_args_option(ClineArgs *cline_arg,
 static enum x_stat cline_arg_collect_orphans(ClineArgs *cline_arg, const char *help_var, bool collect_orphans) {
     enum x_stat status;
     if (!cline_arg || collect_orphans < 0 || collect_orphans > 1) {
-        return XTD_INVALID_PARAMETER;
+        return XTD_INVALID_PARAMETER_ERR;
     }
     status = cline_arg_add_cli_args_option(cline_arg, XTD_NULL, EXOTIC_CLINE_ORPHAN_PARAM_KEY, XTD_NULL, XTD_NULL, 
                                                         XTD_NULL, help_var, XTD_NULL, FALSE, FALSE, FALSE, FALSE, FALSE, 0, (sizeof(size_t)-1/2));
@@ -586,15 +583,17 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
     XIterator *sub_iterator;
     
     if (!cline_arg || !argv) {
-        return XTD_INVALID_PARAMETER;
+        return XTD_INVALID_PARAMETER_ERR;
     }
     for (index = from; index < argc; index++) {
         is_orphan = FALSE;
         argument_length = xstring_cstr_length(argv[index]);
+        if (!argument_length) continue;
         is_true = cline_arg_find_arg_option(cline_arg, XTD_NULL, argv[index], &cline_arg_option, &matching_value, TRUE, TRUE);
         if (!is_true || ((!cline_arg_option->is_prefix && !xstring_cstr_equals(argv[index], matching_value)) && 
                 (!cline_arg_option->is_suffix && !xstring_cstr_equals(argv[index], matching_value))))  {
             if (!cline_arg->collect_orphans) {
+                printf("WTF '%s'-'%s'\n", matching_value, argv[index]);
                 return XTD_INVALID_PARAMETER_FOUND_ERR;
             }
             is_true = cline_arg_find_arg_option(cline_arg, XTD_NULL, EXOTIC_CLINE_ORPHAN_PARAM_KEY, &cline_arg_option, &matching_value, TRUE, TRUE);
@@ -648,11 +647,11 @@ static enum x_stat cline_arg_parse_in_range(ClineArgs *cline_arg, size_t from, s
             }
             if (cline_arg_option->is_prefix || cline_arg_option->is_suffix) { /* checkback ent5ering when not suppose to */
                 prefix_delimiter_length = xstring_cstr_length(cline_arg_option->prefix_delimeter);
-                char *suffix_value = (char *) cline_arg->allocator.memory_calloc(argument_length-matching_value_length, sizeof(char));
+                char *suffix_value;
                 if (cline_arg_option->is_prefix) {
-                    status = xstring_cstr_sub_string(argv[index], matching_value_length+prefix_delimiter_length, suffix_value);
+                    status = xstring_cstr_sub_string(cline_arg->allocator, argv[index], matching_value_length+prefix_delimiter_length, &suffix_value);
                 } else {
-                    status = xstring_cstr_sub_string_in_range(argv[index], 0, argument_length-matching_value_length-prefix_delimiter_length, suffix_value);
+                    status = xstring_cstr_sub_string_in_range(cline_arg->allocator, argv[index], 0, argument_length-matching_value_length-prefix_delimiter_length, &suffix_value);
                 }
                 if (status != XTD_OK) {
                     cline_arg->allocator.memory_free(cline_arg_option->values);

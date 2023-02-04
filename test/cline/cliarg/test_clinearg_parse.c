@@ -17,8 +17,8 @@ CESTER_TEST(cline_arg_parse_wrong_params, inst, {
 
     init_xallocator(&allocator);
     cester_assert_int_eq(init_cline_arg(&allocator, &cline_arg, "CliCalc"), XTD_OK);
-    cester_assert_int_eq(cline_arg_parse(cline_arg, 0, XTD_NULL), XTD_INVALID_PARAMETER);
-    cester_assert_int_eq(cline_arg_parse(XTD_NULL, 0, inst->argv), XTD_INVALID_PARAMETER);
+    cester_assert_int_eq(cline_arg_parse(cline_arg, 0, XTD_NULL), XTD_INVALID_PARAMETER_ERR);
+    cester_assert_int_eq(cline_arg_parse(XTD_NULL, 0, inst->argv), XTD_INVALID_PARAMETER_ERR);
 
     destroy_cline_arg(cline_arg);
 })

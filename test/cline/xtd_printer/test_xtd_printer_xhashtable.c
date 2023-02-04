@@ -1,9 +1,9 @@
 /*!clang {0} -I. -I../../../include/ -o out -Wno-int-conversion; ./out */
 
 #include <exotic/cester.h>
-#include <exotic/xtd/xstring.h>
-#include <exotic/xtd/xcrypto.h>
-#include <exotic/xtd/xhashtable.h>
+#include <exotic/xtd/container/xstring.h>
+#include <exotic/xtd/util/xcrypto.h>
+#include <exotic/xtd/container/xhashtable.h>
 #include <exotic/cline/xtd_printers.h>
 
 CESTER_BODY(

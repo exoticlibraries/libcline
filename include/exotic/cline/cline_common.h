@@ -15,8 +15,13 @@
 extern "C" {
 #endif
 
+#include <stdlib.h>
 #include <stdarg.h>
 #include <stdio.h>
+#include <exotic/xtd/xcommon.h>
+#include <exotic/xtd/util/xcrypto.h>
+#include <exotic/xtd/container/xstring.h>
+#include <exotic/xtd/container/xhashtable.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -74,7 +79,7 @@ static void cline_platform_printnl_if()
     printf("libcline FATAL_ERROR -> %s:%d ", file_name, line_number);\
     printf(__VA_ARGS__); \
     cline_platform_printnl_if(); \
-    exit(EXIT_FAILURE);\
+    exit(1);\
 }
 
 #ifdef _WIN32

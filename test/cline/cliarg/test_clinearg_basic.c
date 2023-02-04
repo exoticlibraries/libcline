@@ -101,7 +101,7 @@ CESTER_TEST(cline_arg_get_arg_option, inst, {
     cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "-h<:>--help", "Print this help message", FALSE), XTD_OK);
     cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "-v<:>--version", "Print the version information and exit", FALSE), XTD_OK);
     cester_assert_int_eq(cline_arg_add_option(cline_arg, XTD_NULL, "--verbose", "Be extra verbose", FALSE), XTD_OK);
-    
+
     cester_assert_int_eq(cline_arg_get_arg_option(cline_arg, XTD_NULL, "--version", &cline_arg_option), TRUE);
     cester_assert_str_equal_(cline_arg_option->splited_option_keys[0], "-v");
     cester_assert_str_equal_(cline_arg_option->splited_option_keys[1], "--version");
